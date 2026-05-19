@@ -1,0 +1,13 @@
+#!/bin/bash
+set -euo pipefail
+
+btrfs_mounts=$(grep ' btrfs ' /proc/mounts | awk '{print $2}')
+if [ -z "$btrfs_mounts" ]; then
+  echo "No BTRFS mounts found, skipping."
+  exit 0
+fi
+
+for mount in $btrfs_mounts; do
+  echo "Scrubbing $mount ..." && btrfs scrub start -B "$mount"
+done
+echo "All BTRFS scrubs complete."

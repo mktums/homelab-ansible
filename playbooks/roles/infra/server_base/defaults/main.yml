@@ -1,0 +1,2 @@
+# BTRFS scrub schedule (disabled by default, override per-host)
+system_btrfs_scrub_enabled: false

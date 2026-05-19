@@ -3,6 +3,8 @@ nvidia_gpu: true
 
 downloads_dir: "/mnt/reds/downloads"
 
+system_btrfs_scrub_enabled: true
+
 system_optimize_mounts:
   - /
   - /mnt/scratch

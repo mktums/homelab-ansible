@@ -53,3 +53,29 @@
     - item.mount in (system_optimize_mounts | default(['/']))
     - item.mount != '/'
     - item.fstype in ['ext2', 'ext3', 'ext4']
+
+- name: Storage | Create BTRFS scrub script directory
+  ansible.builtin.file:
+    path: /opt/ansible/scripts
+    state: directory
+    mode: "0755"
+  when: system_btrfs_scrub_enabled | bool
+
+- name: Storage | Deploy BTRFS scrub service, timer and script
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{ item.mode | default('0644') }}"
+  loop:
+    - { src: 'btrfs-scrub.sh.j2',   dest: '/opt/ansible/scripts/btrfs-scrub.sh', mode: '0755' }
+    - { src: 'btrfs-scrub.service.j2', dest: '/etc/systemd/system/btrfs-scrub.service' }
+    - { src: 'btrfs-scrub.timer.j2', dest: '/etc/systemd/system/btrfs-scrub.timer' }
+  when: system_btrfs_scrub_enabled | bool
+  notify: Reload systemd daemon
+
+- name: Storage | Enable BTRFS scrub timer
+  ansible.builtin.systemd:
+    name: btrfs-scrub.timer
+    state: started
+    enabled: yes
+  when: system_btrfs_scrub_enabled | bool

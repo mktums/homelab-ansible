@@ -1,0 +1,10 @@
+[Unit]
+Description=BTRFS scrub all filesystems
+Documentation=man:btrfs(8)
+
+[Service]
+Type=oneshot
+ExecStart=/opt/ansible/scripts/btrfs-scrub.sh
+
+[Install]
+WantedBy=multi-user.target
