@@ -1,0 +1,7 @@
+---
+- name: Restart CyberChef
+  community.docker.docker_compose_v2:
+    project_src: "{{ cyberchef_opt_dir }}"
+    files:
+      - docker-compose.yml
+    state: present

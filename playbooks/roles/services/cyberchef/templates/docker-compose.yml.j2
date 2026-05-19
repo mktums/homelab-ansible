@@ -1,0 +1,14 @@
+---
+services:
+  cyberchef:
+    image: "{{ cyberchef_image_name }}:{{ cyberchef_image_tag }}"
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.cyberchef.rule: "Host(`{{ cyberchef_cname }}.{{ lan_domain }}`)"
+      traefik.http.routers.cyberchef.entrypoints: "websecure"
+      traefik.http.routers.cyberchef.tls: "true"
+      traefik.http.routers.cyberchef.tls.certresolver: "step-ca"
+      traefik.http.services.cyberchef.loadbalancer.server.port: "8080"

@@ -92,3 +92,7 @@
     - role: linkwarden
       tags: [linkwarden]
       when: inventory_hostname in groups.get('linkwarden_hosts', [])
+
+    - role: cyberchef
+      tags: [cyberchef]
+      when: inventory_hostname in groups.get('cyberchef_hosts', [])

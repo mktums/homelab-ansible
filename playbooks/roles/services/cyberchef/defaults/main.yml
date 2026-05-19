@@ -1,0 +1,11 @@
+# CyberChef defaults
+
+# Image
+cyberchef_image_name: "ghcr.io/gchq/cyberchef"
+cyberchef_image_tag: "latest"
+
+# Paths
+cyberchef_opt_dir: "{{ ansible_opt_base }}/cyberchef"
+
+# CNAME subdomain (without .{{ lan_domain }})
+cyberchef_cname: "chef"

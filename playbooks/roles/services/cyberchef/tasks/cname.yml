@@ -1,0 +1,7 @@
+---
+- name: Register CyberChef CNAME
+  ansible.builtin.include_role:
+    name: common
+    tasks_from: register_cname
+  vars:
+    cname_name: "{{ cyberchef_cname }}.{{ lan_domain }}"
