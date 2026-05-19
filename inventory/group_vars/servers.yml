@@ -51,6 +51,7 @@ common_packages:
   - dmidecode
   - pciutils
   - lshw
+  - btrfs-progs
 
 # Base directories
 ansible_opt_base: "/opt/ansible"
@@ -115,3 +116,6 @@ kopia_global_retention:
 kopia_global_parallelism:
   max_file_reads: 8     # Conservative for 16GB RAM with concurrent backups
   max_snapshots: 4      # Staggered service backups without saturating mirror I/O
+
+# ── Kopia sync-to (secondary repo on SSD) ─────────────────────────────
+kopia_sync_to_enabled: true
