@@ -118,4 +118,7 @@ kopia_global_parallelism:
   max_snapshots: 4      # Staggered service backups without saturating mirror I/O
 
 # ── Kopia sync-to (secondary repo on SSD) ─────────────────────────────
-kopia_sync_to_enabled: true
+kopia_sync_secondary_enabled: true
+
+# ── Kopia sync-to (tertiary repo on T7 USB) ───────────────────────────
+kopia_sync_tertiary_enabled: true

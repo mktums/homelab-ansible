@@ -3,4 +3,8 @@
   block:
     - ansible.builtin.include_tasks: deploy.yml
     - ansible.builtin.include_tasks: cname.yml
+    - ansible.builtin.include_tasks: sync-secondary.yml
+      when: kopia_sync_secondary_enabled
+    - ansible.builtin.include_tasks: sync-tertiary.yml
+      when: kopia_sync_tertiary_enabled
   when: inventory_hostname in groups.get('kopia_server_hosts', [])

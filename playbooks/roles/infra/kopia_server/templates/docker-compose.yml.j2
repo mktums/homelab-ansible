@@ -1,5 +1,6 @@
 services:
   kopia-server:
+    hostname: kopia
     image: "{{ kopia_image_name }}:{{ kopia_image_tag }}"
     restart: unless-stopped
     # Internal port only — Traefik terminates TLS on :443 externally, connects to Kopia via HTTPS
@@ -7,6 +8,12 @@ services:
       - "127.0.0.1:{{ kopia_internal_port }}:{{ kopia_internal_port }}"
     volumes:
       - "{{ kopia_repo_path }}:/data"
+{% if kopia_sync_secondary_enabled %}
+      - "{{ kopia_sync_secondary_repo_path }}:{{ kopia_sync_secondary_repo_path }}:rw"
+{% endif %}
+{% if kopia_sync_tertiary_enabled %}
+      - "{{ kopia_sync_tertiary_repo_path }}:{{ kopia_sync_tertiary_repo_path }}:rw"
+{% endif %}
       - "{{ kopia_config_dir }}:/app/config"
       - "{{ kopia_cache_dir }}:/app/cache"
       - "{{ kopia_logs_dir }}:/app/logs"

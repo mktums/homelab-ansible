@@ -1,0 +1,9 @@
+[Unit]
+Description=Kopia repository sync to tertiary ({{ kopia_sync_tertiary_repo_path }})
+Requires=docker.socket
+After=docker.socket
+
+[Service]
+Type=oneshot
+ExecStartPre=-/bin/systemctl is-active docker.service
+ExecStart={{ kopia_opt_dir }}/kopia-sync-tertiary/kopia-sync-tertiary.sh

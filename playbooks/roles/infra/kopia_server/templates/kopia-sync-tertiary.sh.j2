@@ -1,0 +1,44 @@
+#!/bin/bash
+set -e
+
+DEVICE="/dev/t7_shield1"
+MOUNT="{{ kopia_sync_tertiary_mount_point }}"
+REPO="{{ kopia_sync_tertiary_repo_path }}"
+
+# Wait for docker to be ready (boot scenario)
+for i in $(seq 1 60); do
+  systemctl is-active --quiet docker && break
+  sleep 1
+done || { echo "Docker not ready"; exit 1; }
+
+# Wait for symlink to appear (udev creates it)
+for i in $(seq 1 30); do
+  [ -b "$DEVICE" ] && break
+  sleep 1
+done
+[ -b "$DEVICE" ] || { echo "Device $DEVICE not found"; exit 1; }
+
+# Create mount point and repo dir if needed
+[ -d "$MOUNT" ] || mkdir -p "$MOUNT"
+
+# Mount if not already mounted
+mountpoint -q "$MOUNT" || mount "$DEVICE" "$MOUNT"
+
+[ -d "$REPO" ] || mkdir -p "$REPO"
+
+# Purge macOS AppleDouble files (exFAT workaround for kopia #3022)
+find "$MOUNT" -name '._*' -delete 2>/dev/null || true
+
+# Sync blobs from primary → tertiary
+docker compose -f {{ kopia_opt_dir }}/docker-compose.yml exec -T kopia-server kopia repository sync-to filesystem \
+  --path $REPO \
+  --delete --no-progress
+
+# Maintenance on tertiary (ephemeral container with matching hostname for identity check)
+docker run --rm --hostname=kopia --entrypoint /bin/bash \
+  -e KOPIA_PASSWORD={{ kopia_repo_password }} \
+  -v "$REPO:$REPO:rw" \
+  {{ kopia_image_name }}:{{ kopia_image_tag }} \
+  -c "kopia repository connect filesystem --path=$REPO && kopia maintenance set --owner={{ kopia_maintenance_owner }} && kopia maintenance run --full"
+
+wall "T7 backup synced — safe to unmount"

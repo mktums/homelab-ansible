@@ -1,0 +1,34 @@
+---
+# sync-tertiary.yml — tertiary repository (USB rotation, 3-2-1)
+
+- name: Create tertiary mount and script directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "root"
+    mode: "0755"
+  loop:
+    - "{{ kopia_sync_tertiary_mount_point }}"
+    - "{{ kopia_opt_dir }}/kopia-sync-tertiary"
+
+- name: Deploy tertiary sync script
+  ansible.builtin.template:
+    src: kopia-sync-tertiary.sh.j2
+    dest: "{{ kopia_opt_dir }}/kopia-sync-tertiary/kopia-sync-tertiary.sh"
+    mode: "0750"
+
+- name: Deploy tertiary service unit
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - { src: kopia-sync-tertiary.service.j2, dest: /etc/systemd/system/kopia-sync-tertiary.service, mode: '0644' }
+  notify: Reload systemd
+
+- name: Deploy udev rule for Samsung T7 detection
+  ansible.builtin.template:
+    src: kopia-t7-udev.rules.j2
+    dest: /etc/udev/rules.d/99-kopia-t7.rules
+    mode: "0644"
+  notify: Reload udev

@@ -7,3 +7,6 @@
 - name: Reload systemd
   ansible.builtin.systemd:
     daemon_reload: yes
+
+- name: Reload udev
+  ansible.builtin.command: udevadm control --reload-rules

@@ -1,0 +1,61 @@
+---
+# sync-secondary.yml — secondary repository (3-2-1)
+
+- name: Create secondary repository directory
+  ansible.builtin.file:
+    path: "{{ kopia_sync_secondary_repo_path }}"
+    state: directory
+    owner: "root"
+    mode: "0700"
+
+- name: Create secondary script and config directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "root"
+    mode: "0750"
+  loop:
+    - "{{ kopia_config_dir }}/sync"
+    - "{{ kopia_opt_dir }}/kopia-sync-secondary"
+
+- name: Deploy secondary sync script
+  ansible.builtin.template:
+    src: kopia-sync-secondary.sh.j2
+    dest: "{{ kopia_opt_dir }}/kopia-sync-secondary/kopia-sync-secondary.sh"
+    mode: "0750"
+
+- name: Deploy secondary timer and service
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - { src: kopia-sync-secondary.timer.j2, dest: /etc/systemd/system/kopia-sync-secondary.timer, mode: '0644' }
+    - { src: kopia-sync-secondary.service.j2, dest: /etc/systemd/system/kopia-sync-secondary.service, mode: '0644' }
+  notify: Reload systemd
+
+- name: Deploy secondary verification timers and services
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - { src: kopia-sync-secondary-verify.timer.j2, dest: /etc/systemd/system/kopia-sync-secondary-verify.timer, mode: '0644' }
+    - { src: kopia-sync-secondary-verify.service.j2, dest: /etc/systemd/system/kopia-sync-secondary-verify.service, mode: '0644' }
+    - { src: kopia-sync-secondary-verify-full.timer.j2, dest: /etc/systemd/system/kopia-sync-secondary-verify-full.timer, mode: '0644' }
+    - { src: kopia-sync-secondary-verify-full.service.j2, dest: /etc/systemd/system/kopia-sync-secondary-verify-full.service, mode: '0644' }
+  notify: Reload systemd
+
+- name: Reload systemd (pick up unit changes)
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Start and enable secondary timers
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  loop:
+    - kopia-sync-secondary.timer
+    - kopia-sync-secondary-verify.timer
+    - kopia-sync-secondary-verify-full.timer

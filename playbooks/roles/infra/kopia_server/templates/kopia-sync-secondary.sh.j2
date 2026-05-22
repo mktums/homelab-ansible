@@ -1,0 +1,8 @@
+#!/bin/bash
+set -e
+docker compose -f {{ kopia_opt_dir }}/docker-compose.yml exec -T kopia-server kopia repository sync-to filesystem --path {{ kopia_sync_secondary_repo_path }} --delete --no-progress
+docker run --rm --hostname=kopia --entrypoint /bin/bash \
+  -e KOPIA_PASSWORD={{ kopia_repo_password }} \
+  -v "{{ kopia_sync_secondary_repo_path }}:{{ kopia_sync_secondary_repo_path }}:rw" \
+  {{ kopia_image_name }}:{{ kopia_image_tag }} \
+  -c "kopia repository connect filesystem --path={{ kopia_sync_secondary_repo_path }} && kopia maintenance set --owner={{ kopia_maintenance_owner }} && kopia maintenance run --full"

@@ -14,18 +14,27 @@ Deploy centralized backup infrastructure using [Kopia](https://kopia.io/) — a 
 | TLS + admin/control credentials | Done |
 | Traefik routing (dynamic config) | Done |
 | Global policy (compression, retention, parallelism) | Done |
-| Maintenance owner | Done (`admin@server`) |
+| Maintenance owner | Done (`root@kopia`) |
 | Verify timers (daily 5%, monthly 100%) | Done |
-| Off-site replication (sync-to) | Planned — two follow-up plans (local mirror + USB udev trigger) |
+| Off-site replication (sync-to) | Done — secondary SSD + tertiary USB ([005d](./005d-kopia-sync-secondary.md)) |
 
 ## Affected files
 
 | File | Change |
 |------|--------|
-| `playbooks/roles/infra/kopia_server/` | New — repository server role |
-| `inventory/group_vars/servers.yml` | Kopia server vars (repo path, credentials) |
+| `playbooks/roles/infra/kopia_server/` | Repository server role |
+| `playbooks/roles/infra/kopia_server/tasks/sync-secondary.yml` | New — secondary sync deployment tasks |
+| `playbooks/roles/infra/kopia_server/tasks/sync-tertiary.yml` | New — tertiary sync deployment tasks |
+| `inventory/group_vars/servers.yml` | Kopia server vars (repo path, credentials), enabled secondary + tertiary sync |
 | `inventory/hosts.yml` | Add `kopia_server_hosts` group |
 | `vault/secrets.yml` | Server admin credentials, repo encryption key |
+
+### Affected files (sync-to additions)
+
+| File | Change |
+|------|--------|
+| `playbooks/roles/infra/kopia_server/templates/docker-compose.yml.j2` | Added conditional volume mounts for secondary + tertiary paths, added hostname |
+| `playbooks/roles/infra/kopia_server/handlers/main.yml` | Added `Reload udev` handler |
 
 ## Architecture
 
@@ -33,7 +42,15 @@ Single Docker container running `kopia server start` on the designated lab host.
 
 ### Storage backend
 
-Local disk on lab1 (2x3TB WD Reds in mirror). No external cloud storage yet. Off-site replication via USB rotation (Samsung T7 Shield 2TB) or `kopia repository sync-to` to a separate local disk.
+Local disk on lab1 (2x3TB WD Reds in mirror). Local mirror (WD Green SSD, `/mnt/green/kopia-repo-sync`) synced daily via `sync-to`. Portable off-site copy (Samsung T7 Shield 2TB USB, `/mnt/t7/kopia-repo-sync`) synced on plug-in via udev. See [005d](./005d-kopia-sync-secondary.md).
+
+### Image
+
+`kopia/kopia:0.23`
+
+### Hostname
+
+Container hostname is set to `kopia` so that ephemeral containers (maintenance, verification) and the server container share the same identity for kopia's `user@hostname` checks.
 
 ### Multi-user support
 
@@ -45,7 +62,7 @@ Kopia v0.6+ runs automatic maintenance when any connected client executes CLI co
 - **Quick maintenance** (~hourly) — keeps q/n blob counts low, enabled by default
 - **Full maintenance** (every 24 hours) — snapshot GC and compaction, enabled by default
 
-One `user@hostname` is designated as exclusive Maintenance Owner (`kopia maintenance set --owner=...`). Other users skip auto-maintenance. Ansible sets this during server deployment via `delegate_to` on the kopia_server host.
+One `user@hostname` is designated as exclusive Maintenance Owner (`root@kopia`). Other users skip auto-maintenance. Changed from `admin@server` to match the container hostname for consistency across ephemeral containers.
 
 ### Repository verification
 

@@ -1,0 +1,6 @@
+[Unit]
+Description=Kopia secondary repository verification (monthly 100%)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker run --rm -e KOPIA_PASSWORD={{ kopia_repo_password }} -v "{{ kopia_sync_secondary_repo_path }}:{{ kopia_sync_secondary_repo_path }}:rw" {{ kopia_image_name }}:{{ kopia_image_tag }} snapshot verify --verify-files-percent=100 --file-parallelism=4 --parallel=4
