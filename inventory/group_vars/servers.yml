@@ -79,6 +79,7 @@ dockhand_admin_user: "{{ vault_dockhand_admin_user }}"
 dockhand_admin_password: "{{ vault_dockhand_admin_password }}"
 dockhand_ansible_user: "{{ vault_dockhand_ansible_user }}"
 dockhand_ansible_password: "{{ vault_dockhand_ansible_password }}"
+dockhand_db_password: "{{ vault_dockhand_db_password }}"
 
 # Vaultwarden
 vaultwarden_admin_token: "{{ vault_vaultwarden_admin_token }}"

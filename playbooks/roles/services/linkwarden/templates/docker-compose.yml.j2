@@ -1,47 +1,8 @@
 ---
 services:
-  wait-for-postgres:
-    image: "alpine:{{ alpine_image_tag }}"
-    restart: "no"
-    command: >
-      sh -c "until nc -z {{ postgres_cname }}.{{ lan_domain }} {{ postgres_port | string }}; do sleep 3; done"
-
-  wait-for-meilisearch:
-    image: "alpine:{{ alpine_image_tag }}"
-    restart: "no"
-    command: >
-      sh -c "until wget --spider -q http://{{ meilisearch_cname }}.{{ lan_domain }}:{{ meilisearch_port }}/health 2>/dev/null; do sleep 3; done"
-
-{% if linkwarden_db_init | default(true) %}
-  db-init:
-    image: "{{ postgres_image_name }}:{{ postgres_image_tag }}"
-    restart: "no"
-    tmpfs:
-      - /var/lib/postgresql/data
-    environment:
-      PGPASSWORD: "{{ linkwarden_db_password }}"
-    command: >
-      sh -c "until pg_isready -h {{ postgres_cname }}.{{ lan_domain }} -p {{ postgres_port | string }}; do sleep 2; done &&
-             psql -h {{ postgres_cname }}.{{ lan_domain }} -U postgres -d postgres -c 'CREATE USER linkwarden WITH PASSWORD ''{{ linkwarden_db_password }}'';' || true &&
-             psql -h {{ postgres_cname }}.{{ lan_domain }} -U postgres -d postgres -tc \"SELECT 1 FROM pg_database WHERE datname='linkwarden'\" | grep -q 1 ||
-             psql -h {{ postgres_cname }}.{{ lan_domain }} -U postgres -d postgres -c 'CREATE DATABASE linkwarden OWNER linkwarden'"
-    depends_on:
-      wait-for-postgres:
-        condition: service_completed_successfully
-
-{% endif %}
   linkwarden:
     image: "{{ linkwarden_image_name }}:{{ linkwarden_image_tag }}"
     restart: unless-stopped
-    depends_on:
-      wait-for-postgres:
-        condition: service_completed_successfully
-      wait-for-meilisearch:
-        condition: service_completed_successfully
-{% if linkwarden_db_init | default(true) %}
-      db-init:
-        condition: service_completed_successfully
-{% endif %}
     env_file: "{{ linkwarden_opt_dir }}/.env"
     volumes:
       - "{{ linkwarden_data_dir }}/data:/data/data"

@@ -17,6 +17,14 @@
     - "{{ dockhand_opt_dir }}"
     - "{{ dockhand_data_dir }}"
 
+- ansible.builtin.include_role:
+    name: common
+    tasks_from: create_pg_database
+  vars:
+    pg_db_name: "dockhand"
+    pg_db_user: "dockhand"
+    pg_db_password: "{{ dockhand_db_password }}"
+
 - name: Render compose file
   ansible.builtin.template:
     src: docker-compose.yml.j2

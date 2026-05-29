@@ -20,6 +20,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     environment:
       DATA_DIR: "{{ dockhand_data_dir }}"
+      DATABASE_URL: "postgresql://dockhand:{{ dockhand_db_password }}@{{ postgres_cname }}.{{ lan_domain }}:{{ postgres_port }}/dockhand"
       NODE_EXTRA_CA_CERTS: "/etc/ssl/certs/ca-certificates.crt"
       TZ: "{{ timezone }}"
     labels:

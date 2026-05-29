@@ -9,6 +9,14 @@
     - "{{ linkwarden_opt_dir }}"
     - "{{ linkwarden_data_dir }}/data"
 
+- ansible.builtin.include_role:
+    name: common
+    tasks_from: create_pg_database
+  vars:
+    pg_db_name: "linkwarden"
+    pg_db_user: "linkwarden"
+    pg_db_password: "{{ linkwarden_db_password }}"
+
 - name: Write Linkwarden .env file
   ansible.builtin.copy:
     content: |

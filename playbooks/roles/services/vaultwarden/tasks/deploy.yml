@@ -8,6 +8,14 @@
     - "{{ vaultwarden_opt_dir }}"
     - "{{ vaultwarden_data_dir }}"
 
+- ansible.builtin.include_role:
+    name: common
+    tasks_from: create_pg_database
+  vars:
+    pg_db_name: "vaultwarden"
+    pg_db_user: "vaultwarden"
+    pg_db_password: "{{ vault_vaultwarden_db_password }}"
+
 - name: Write Vaultwarden .env file
   ansible.builtin.copy:
     content: |
