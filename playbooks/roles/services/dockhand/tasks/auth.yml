@@ -1,0 +1,98 @@
+---
+# Authentication: wait health, create users, login, create API token
+
+- name: Wait for DockHand API to be ready
+  ansible.builtin.uri:
+    url: "http://{{ inventory_hostname }}.{{ lan_domain }}:{{ dockhand_web_port }}/api/health"
+    validate_certs: false
+    status_code: 200
+  register: _dockhand_ready
+  until: _dockhand_ready.status == 200
+  retries: 15
+  delay: 4
+  delegate_to: localhost
+  become: false
+
+- name: Check auth status
+  ansible.builtin.uri:
+    url: "http://{{ inventory_hostname }}.{{ lan_domain }}:{{ dockhand_web_port }}/api/auth/settings"
+    validate_certs: false
+    status_code: [200, 401]
+  register: _dockhand_auth_settings
+  delegate_to: localhost
+  become: false
+
+- name: Create admin user (first user gets auto-admin)
+  ansible.builtin.uri:
+    url: "http://{{ inventory_hostname }}.{{ lan_domain }}:{{ dockhand_web_port }}/api/users"
+    method: POST
+    body_format: json
+    body:
+      username: "{{ dockhand_admin_user }}"
+      password: "{{ dockhand_admin_password }}"
+    validate_certs: false
+    status_code: [201, 409]
+  delegate_to: localhost
+  become: false
+  no_log: true
+  when: _dockhand_auth_settings.status == 200 and not _dockhand_auth_settings.json.authEnabled | default(false)
+
+- name: Create ansible user
+  ansible.builtin.uri:
+    url: "http://{{ inventory_hostname }}.{{ lan_domain }}:{{ dockhand_web_port }}/api/users"
+    method: POST
+    body_format: json
+    body:
+      username: "{{ dockhand_ansible_user }}"
+      password: "{{ dockhand_ansible_password }}"
+    validate_certs: false
+    status_code: [201, 409]
+  delegate_to: localhost
+  become: false
+  no_log: true
+  when: _dockhand_auth_settings.status == 200 and not _dockhand_auth_settings.json.authEnabled | default(false)
+
+- name: Enable authentication
+  ansible.builtin.uri:
+    url: "http://{{ inventory_hostname }}.{{ lan_domain }}:{{ dockhand_web_port }}/api/auth/settings"
+    method: PUT
+    body_format: json
+    body:
+      authEnabled: true
+    validate_certs: false
+    status_code: 200
+  delegate_to: localhost
+  become: false
+  when: _dockhand_auth_settings.status == 200 and not _dockhand_auth_settings.json.authEnabled | default(false)
+
+- name: Login as ansible user
+  ansible.builtin.uri:
+    url: "http://{{ inventory_hostname }}.{{ lan_domain }}:{{ dockhand_web_port }}/api/auth/login"
+    method: POST
+    body_format: json
+    body:
+      username: "{{ dockhand_ansible_user }}"
+      password: "{{ dockhand_ansible_password }}"
+    validate_certs: false
+    status_code: 200
+  register: _dockhand_login
+  delegate_to: localhost
+  become: false
+  no_log: true
+
+- name: Create API bearer token
+  ansible.builtin.uri:
+    url: "http://{{ inventory_hostname }}.{{ lan_domain }}:{{ dockhand_web_port }}/api/auth/tokens"
+    method: POST
+    body_format: json
+    body:
+      name: "ansible"
+      password: "{{ dockhand_ansible_password }}"
+    validate_certs: false
+    status_code: 201
+    headers:
+      Cookie: "{{ _dockhand_login.set_cookie }}"
+  register: _dockhand_api_token
+  delegate_to: localhost
+  become: false
+  no_log: true

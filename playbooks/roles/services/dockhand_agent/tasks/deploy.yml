@@ -1,24 +1,24 @@
 ---
-- name: Create Portainer directories
+- name: Create DockHand agent directories
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     mode: "0755"
   loop:
-    - "{{ portainer_opt_dir }}"
-    - "{{ portainer_data_dir }}/data"
+    - "{{ dockhand_agent_opt_dir }}"
+    - "{{ dockhand_agent_stacks_dir }}"
 
 - name: Render compose file
   ansible.builtin.template:
     src: docker-compose.yml.j2
-    dest: "{{ portainer_opt_dir }}/docker-compose.yml"
+    dest: "{{ dockhand_agent_opt_dir }}/docker-compose.yml"
     mode: "0644"
 
-- name: Deploy Portainer stack
+- name: Deploy DockHand agent stack
   community.docker.docker_compose_v2:
-    project_src: "{{ portainer_opt_dir }}"
+    project_src: "{{ dockhand_agent_opt_dir }}"
     files:
       - docker-compose.yml
     state: present
     pull: missing
-  notify: Restart Portainer
+  notify: Restart DockHand agent

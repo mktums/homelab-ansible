@@ -1,0 +1,31 @@
+---
+services:
+  dockhand:
+    image: "{{ dockhand_image_name }}:{{ dockhand_image_tag }}"
+    container_name: dockhand
+    restart: unless-stopped
+    group_add:
+      - "{{ _dockhand_docker_gid }}"
+    ports:
+      - "0.0.0.0:{{ dockhand_web_port }}:{{ dockhand_web_port }}"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:{{ dockhand_web_port }}/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - "{{ dockhand_data_dir }}:{{ dockhand_data_dir }}"
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      DATA_DIR: "{{ dockhand_data_dir }}"
+      NODE_EXTRA_CA_CERTS: "/etc/ssl/certs/ca-certificates.crt"
+      TZ: "{{ timezone }}"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.dockhand.rule: "Host(`{{ dockhand_cname }}.{{ lan_domain }}`)"
+      traefik.http.routers.dockhand.entrypoints: "websecure"
+      traefik.http.routers.dockhand.tls: "true"
+      traefik.http.routers.dockhand.tls.certresolver: "step-ca"
+      traefik.http.services.dockhand.loadbalancer.server.port: "{{ dockhand_web_port }}"

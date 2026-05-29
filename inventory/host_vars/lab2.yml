@@ -12,3 +12,14 @@ beszel_smart_cap_add:
   - SYS_ADMIN
 beszel_extra_volumes:
   - /data/.beszel:/extra-filesystems/sda1:ro
+
+# ── Kopia backup sources ────────────────────────────────────────────────
+backup_sources:
+  dockhand_agent:
+    hostname: server
+    paths:
+      "{{ dockhand_agent_data_dir }}":
+        retention:
+          keep_latest: 10
+          keep_daily: 7
+          keep_monthly: 6

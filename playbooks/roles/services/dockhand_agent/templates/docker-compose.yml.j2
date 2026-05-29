@@ -1,0 +1,20 @@
+---
+services:
+  hawser:
+    image: "{{ dockhand_agent_image_name }}:{{ dockhand_agent_image_tag }}"
+    container_name: hawser
+    restart: unless-stopped
+    ports:
+      - "{{ dockhand_agent_port }}:{{ dockhand_agent_port }}"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:{{ dockhand_agent_port }}/_hawser/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "{{ dockhand_agent_stacks_dir }}:{{ dockhand_agent_stacks_dir }}"
+    environment:
+      PORT: "{{ dockhand_agent_port }}"
+      STACKS_DIR: "{{ dockhand_agent_stacks_dir }}"
+      AGENT_NAME: "{{ inventory_hostname }}"

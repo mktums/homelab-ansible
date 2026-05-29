@@ -1,0 +1,13 @@
+# DockHand agent (Hawser Standard) defaults
+
+# Image
+dockhand_agent_image_name: "ghcr.io/finsys/hawser"
+dockhand_agent_image_tag: "0.2.43"
+
+# Network
+dockhand_agent_port: 2376
+
+# Paths
+dockhand_agent_opt_dir: "{{ ansible_opt_base }}/dockhand-agent"
+dockhand_agent_data_dir: "{{ docker_data_base }}/dockhand-agent"
+dockhand_agent_stacks_dir: "{{ dockhand_agent_data_dir }}/stacks"

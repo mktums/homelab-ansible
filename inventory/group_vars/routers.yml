@@ -13,7 +13,7 @@ lan_dhcp_leasetime: "12h"
 # DNS CNAMEs — point service names to hosts
 dns_cnames: []
 # example:
-#   - { cname: portainer.lan, target: lab1.lan }
+#   - { cname: dockhand.lan, target: lab1.lan }
 
 # IoT
 iot_ip: "10.10.30.1"

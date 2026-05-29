@@ -1,0 +1,100 @@
+---
+# Register/update environment in DockHand (shared by dockhand and dockhand_agent)
+# Requires: _dockhand_api_token, _dockhand_server, _dockhand_env_name, _dockhand_env_body
+
+- name: Get existing environments
+  ansible.builtin.uri:
+    url: "http://{{ _dockhand_server }}:{{ dockhand_web_port }}/api/environments"
+    headers:
+      Authorization: "Bearer {{ _dockhand_api_token.json.token }}"
+    validate_certs: false
+    status_code: 200
+  register: _dockhand_environments
+  delegate_to: localhost
+  become: false
+
+- name: Set environment method and ID
+  ansible.builtin.set_fact:
+    _dockhand_env_exists: "{{ _dockhand_environments.json | selectattr('name', 'equalto', _dockhand_env_name) | list | length > 0 }}"
+    _dockhand_env_id: "{{ (_dockhand_environments.json | selectattr('name', 'equalto', _dockhand_env_name) | list | first).id | default('') }}"
+
+- name: "Register Docker environment (new)"
+  ansible.builtin.uri:
+    url: "http://{{ _dockhand_server }}:{{ dockhand_web_port }}/api/environments"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ _dockhand_api_token.json.token }}"
+    body_format: json
+    body: "{{ _dockhand_env_common | combine(_dockhand_env_body) }}"
+    validate_certs: false
+    status_code: [200, 201]
+  register: _dockhand_new_env
+  delegate_to: localhost
+  become: false
+  when: not _dockhand_env_exists
+
+- name: Set environment ID (from POST response)
+  ansible.builtin.set_fact:
+    _dockhand_env_id: "{{ _dockhand_new_env.json.id }}"
+  when: not _dockhand_env_exists
+
+- name: "Update Docker environment (existing)"
+  ansible.builtin.uri:
+    url: "http://{{ _dockhand_server }}:{{ dockhand_web_port }}/api/environments/{{ _dockhand_env_id }}"
+    method: PUT
+    headers:
+      Authorization: "Bearer {{ _dockhand_api_token.json.token }}"
+    body_format: json
+    body: "{{ _dockhand_env_common | combine(_dockhand_env_body) }}"
+    validate_certs: false
+    status_code: 200
+  delegate_to: localhost
+  become: false
+  when: _dockhand_env_exists
+
+- name: Set environment timezone
+  ansible.builtin.uri:
+    url: "http://{{ _dockhand_server }}:{{ dockhand_web_port }}/api/environments/{{ _dockhand_env_id }}/timezone"
+    method: POST
+    body_format: json
+    body:
+      timezone: "{{ timezone }}"
+    headers:
+      Authorization: "Bearer {{ _dockhand_api_token.json.token }}"
+    validate_certs: false
+    status_code: 200
+  delegate_to: localhost
+  become: false
+
+- name: Configure update check
+  ansible.builtin.uri:
+    url: "http://{{ _dockhand_server }}:{{ dockhand_web_port }}/api/environments/{{ _dockhand_env_id }}/update-check"
+    method: POST
+    body_format: json
+    body:
+      enabled: true
+      cron: "0 4 * * *"
+      autoUpdate: false
+      vulnerabilityCriteria: "never"
+    headers:
+      Authorization: "Bearer {{ _dockhand_api_token.json.token }}"
+    validate_certs: false
+    status_code: 200
+  delegate_to: localhost
+  become: false
+
+- name: Configure image prune
+  ansible.builtin.uri:
+    url: "http://{{ _dockhand_server }}:{{ dockhand_web_port }}/api/environments/{{ _dockhand_env_id }}/image-prune"
+    method: POST
+    body_format: json
+    body:
+      enabled: true
+      cronExpression: "0 3 * * 0"
+      pruneMode: "dangling"
+    headers:
+      Authorization: "Bearer {{ _dockhand_api_token.json.token }}"
+    validate_certs: false
+    status_code: 200
+  delegate_to: localhost
+  become: false

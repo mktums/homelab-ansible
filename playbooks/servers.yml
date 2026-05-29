@@ -69,10 +69,6 @@
       tags: [beszel_agent]
       when: inventory_hostname in groups.get('beszel_agent_hosts', [])
 
-    - role: portainer
-      tags: [portainer]
-      when: inventory_hostname in groups.get('portainer_hosts', [])
-
     - role: vaultwarden
       tags: [vaultwarden]
       when: inventory_hostname in groups.get('vaultwarden_hosts', [])
@@ -80,10 +76,6 @@
     - role: qbittorrent
       tags: [qbittorrent]
       when: inventory_hostname in groups.get('qbittorrent_hosts', [])
-
-    - role: portainer_edge
-      tags: [portainer_edge]
-      when: inventory_hostname in groups.get('portainer_edge_hosts', [])
 
     - role: inpx_web
       tags: [inpx_web]
@@ -96,3 +88,11 @@
     - role: cyberchef
       tags: [cyberchef]
       when: inventory_hostname in groups.get('cyberchef_hosts', [])
+
+    - role: dockhand
+      tags: [dockhand]
+      when: inventory_hostname in groups.get('dockhand_hosts', [])
+
+    - role: dockhand_agent
+      tags: [dockhand_agent]
+      when: inventory_hostname in groups.get('dockhand_agent_hosts', [])

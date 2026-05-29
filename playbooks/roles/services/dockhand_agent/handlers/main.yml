@@ -1,7 +1,7 @@
 ---
-- name: Restart Portainer Edge Agent
+- name: Restart DockHand agent
   community.docker.docker_compose_v2:
-    project_src: "{{ portainer_edge_opt_dir }}"
+    project_src: "{{ dockhand_agent_opt_dir }}"
     files:
       - docker-compose.yml
     state: present

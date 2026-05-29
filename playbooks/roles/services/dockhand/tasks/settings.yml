@@ -1,0 +1,67 @@
+---
+# Apply DockHand settings via API
+
+- name: Apply general settings
+  ansible.builtin.uri:
+    url: "http://{{ inventory_hostname }}.{{ lan_domain }}:{{ dockhand_web_port }}/api/settings/general"
+    method: POST
+    body_format: json
+    body:
+      showStoppedContainers: true
+      highlightUpdates: true
+      timeFormat: "24h"
+      dateFormat: "YYYY-MM-DD"
+      defaultTimezone: "{{ timezone }}"
+      lightTheme: "gruvbox"
+      darkTheme: "github"
+      terminalFont: "jetbrains-mono"
+      editorFont: "jetbrains-mono"
+      compactPorts: false
+      showExposedPorts: true
+      downloadFormat: "tar.gz"
+      scannerCleanupEnabled: true
+      eventCleanupEnabled: true
+      scheduleCleanupEnabled: true
+    headers:
+      Authorization: "Bearer {{ _dockhand_api_token.json.token }}"
+    validate_certs: false
+    status_code: 200
+  delegate_to: localhost
+  become: false
+
+- name: Get existing registries
+  ansible.builtin.uri:
+    url: "http://{{ inventory_hostname }}.{{ lan_domain }}:{{ dockhand_web_port }}/api/registries"
+    headers:
+      Authorization: "Bearer {{ _dockhand_api_token.json.token }}"
+    validate_certs: false
+    status_code: 200
+  register: _dockhand_registries
+  delegate_to: localhost
+  become: false
+
+- name: Add registries
+  ansible.builtin.uri:
+    url: "http://{{ inventory_hostname }}.{{ lan_domain }}:{{ dockhand_web_port }}/api/registries"
+    method: POST
+    body_format: json
+    body:
+      name: "{{ item.name }}"
+      url: "{{ item.url }}"
+    headers:
+      Authorization: "Bearer {{ _dockhand_api_token.json.token }}"
+    validate_certs: false
+    status_code: 201
+  loop:
+    - { name: "GitHub", url: "https://ghcr.io" }
+    - { name: "LinuxServer", url: "https://lscr.io" }
+    - { name: "Quay", url: "https://quay.io" }
+    - { name: "GitLab", url: "https://registry.gitlab.com" }
+  loop_control:
+    label: "{{ item.name }}"
+  delegate_to: localhost
+  become: false
+  when: >-
+    _dockhand_registries.json
+    | selectattr('url', 'equalto', item.url)
+    | list | length == 0

@@ -1,0 +1,15 @@
+# DockHand defaults
+
+# Image
+dockhand_image_name: "fnsys/dockhand"
+dockhand_image_tag: "v1.0.29"
+
+# Network
+dockhand_web_port: 3000
+
+# Paths
+dockhand_opt_dir: "{{ ansible_opt_base }}/dockhand"
+dockhand_data_dir: "{{ docker_data_base }}/dockhand"
+
+# CNAME subdomain (without .{{ lan_domain }})
+dockhand_cname: "dockhand"

@@ -1,7 +1,7 @@
 ---
-- name: Restart Portainer
+- name: Restart DockHand
   community.docker.docker_compose_v2:
-    project_src: "{{ portainer_opt_dir }}"
+    project_src: "{{ dockhand_opt_dir }}"
     files:
       - docker-compose.yml
     state: present

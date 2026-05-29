@@ -74,8 +74,11 @@ traefik_dashboard_password: "{{ vault_traefik_dashboard_password }}"
 # step-ca
 step_ca_password: "{{ vault_step_ca_password }}"
 
-# Portainer
-portainer_admin_password: "{{ vault_portainer_admin_password }}"
+# DockHand
+dockhand_admin_user: "{{ vault_dockhand_admin_user }}"
+dockhand_admin_password: "{{ vault_dockhand_admin_password }}"
+dockhand_ansible_user: "{{ vault_dockhand_ansible_user }}"
+dockhand_ansible_password: "{{ vault_dockhand_ansible_password }}"
 
 # Vaultwarden
 vaultwarden_admin_token: "{{ vault_vaultwarden_admin_token }}"

@@ -30,3 +30,6 @@ Each file describes a single change or refactoring effort: the motivation, affec
 | 9 | Normal | [Reconsider service playbook independence](009-service-playbook-independence.md) | Easy | ✅ Done (2026-05-05) |
 | 10 | High | [CNAME name/target consistency across roles](010-cname-consistency.md) | Medium | ✅ Done (2026-05-09) |
 | 11 | Normal | [Centralize Kopia backup orchestration in kopia_agent role](011-centralize-kopia-backups.md) | Medium | ✅ Done (2026-05-17) |
+| 12 | High | [Migrate Kopia server from Docker to native binary](012-migrate-kopia-to-native.md) | Hard | Planned |
+| 13 | Normal | [Add DockHand](013-add-dockhand.md) | Medium | Done |
+| — | — | [DockHand config reference](dockhand-config-reference.md) | — | Reference |
