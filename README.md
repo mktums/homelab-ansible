@@ -44,8 +44,8 @@ Internet
     │   ├── step-ca       :8443   (ACME CA, not behind Traefik)
     │   ├── traefik        :80/:443
     │   │   └── traefik.lab1.lan  (dashboard, basic auth)
-    │   ├── portainer      (via Traefik)
-    │   │   └── portainer.lan
+    │   ├── dockhand       (via Traefik)
+    │   │   └── dockhand.lan
     │   ├── vaultwarden    (via Traefik)
     │   │   └── vw.lan
     │   ├── postgres       :5432
@@ -62,7 +62,7 @@ Internet
         Docker host
         ├── traefik        :80/:443
         │   └── traefik.lab2.lan  (dashboard, basic auth)
-        ├── portainer edge agent  (connects to portainer.lan:8000)
+        ├── dockhand agent (Hawser, connects to dockhand.lan)
         ├── qbittorrent    (via Traefik)
         │   └── qbit.lab2.lan
         └── inpx-web       (via Traefik)
@@ -78,7 +78,7 @@ DNS (*.lan resolved by dnsmasq):
   step-ca.lan         → lab1.lan     (CNAME)
   traefik.lab1.lan    → lab1.lan     (CNAME)
   traefik.lab2.lan    → lab2.lan     (CNAME)
-  portainer.lan       → lab1.lan     (CNAME)
+  dockhand.lan        → lab1.lan     (CNAME)
   vw.lan              → lab1.lan     (CNAME)
   qbit.lab1.lan       → lab1.lan     (CNAME)
   qbit.lab2.lan       → lab2.lan     (CNAME)
@@ -234,10 +234,14 @@ vault_beszel_token: ""
 # Hub public key (from Beszel UI: Add System → public key)
 vault_beszel_hub_key: ""
 
-# ── Portainer ──────────────────────────────────────────────────────────────
+# ── DockHand ────────────────────────────────────────────────────────────────
 
-# Admin password for Portainer
-vault_portainer_admin_password: "..."
+# Admin and service user credentials
+vault_dockhand_admin_user: "..."
+vault_dockhand_admin_password: "..."
+vault_dockhand_ansible_user: "..."
+vault_dockhand_ansible_password: "..."
+vault_dockhand_db_password: "..."
 
 # ── Vaultwarden ────────────────────────────────────────────────────────────
 
@@ -281,7 +285,7 @@ ansible-playbook playbooks/docker.yml
 # Single services (via tags)
 ansible-playbook playbooks/servers.yml --tags postgres
 ansible-playbook playbooks/servers.yml --tags beszel_hub,beszel_agent
-ansible-playbook playbooks/servers.yml --tags portainer
+ansible-playbook playbooks/servers.yml --tags dockhand,dockhand_agent
 ansible-playbook playbooks/servers.yml --tags vaultwarden
 ansible-playbook playbooks/servers.yml --tags qbittorrent
 ansible-playbook playbooks/servers.yml --tags inpx_web
@@ -367,13 +371,13 @@ step-ca needs to reach the Traefik host on port 443 to complete the TLS-ALPN-01 
 - Port 443 is reachable on the Traefik host from lab1
 - `acme.json` has `600` permissions — if corrupt, delete it and restart Traefik
 
-**Portainer Edge agent disconnects immediately**
+**DockHand agent (Hawser) not reachable**
 
-The edge agent connects to `portainer.lan:8000`. Ensure:
+Hawser on lab2 connects to DockHand on lab1 via HTTP on port 2376. Ensure:
 
-- Port `8000` is published on the Portainer container
-- The CA cert is installed on the edge host (`update-ca-certificates --fresh`)
-- Traefik has a valid cert (edge tunnel uses WSS)
+- Hawser container is healthy (`docker ps`)
+- Port `2376` is reachable from lab1 (`curl http://lab2.lan:2376/_hawser/health`)
+- CA cert is installed on lab2 (`update-ca-certificates --fresh`)
 
 **Verify DNS-over-TLS is working**
 
