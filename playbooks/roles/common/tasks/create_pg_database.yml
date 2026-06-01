@@ -4,20 +4,16 @@
 
 - name: Create PostgreSQL user "{{ pg_db_user }}"
   ansible.builtin.command:
-    cmd: "docker compose exec -T postgres psql -U {{ postgres_user | default('postgres') }} -d postgres -c \"CREATE USER {{ pg_db_user }} WITH PASSWORD '{{ pg_db_password }}';\""
+    cmd: "docker compose exec -T postgres psql -U {{ postgres_user | default('postgres') }} -d postgres -c \"DO $$ BEGIN CREATE USER {{ pg_db_user }} WITH PASSWORD '{{ pg_db_password }}'; EXCEPTION WHEN duplicate_object THEN NULL; END $$;\""
   args:
     chdir: "{{ postgres_opt_dir }}"
-  register: _pg_create_user
-  changed_when: "'CREATE ROLE' in _pg_create_user.stdout"
-  failed_when: "'role ... already exists' not in _pg_create_user.stderr and _pg_create_user.rc != 0"
+  changed_when: false
   delegate_to: "{{ groups['postgres_hosts'][0] }}"
 
 - name: Create PostgreSQL database "{{ pg_db_name }}"
   ansible.builtin.command:
-    cmd: "docker compose exec -T postgres psql -U {{ postgres_user | default('postgres') }} -d postgres -c \"CREATE DATABASE {{ pg_db_name }} OWNER {{ pg_db_user }};\""
+    cmd: "docker compose exec -T postgres psql -U {{ postgres_user | default('postgres') }} -d postgres -c \"SELECT 'CREATE DATABASE {{ pg_db_name }} OWNER {{ pg_db_user }}' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '{{ pg_db_name }}')\\gexec\""
   args:
     chdir: "{{ postgres_opt_dir }}"
-  register: _pg_create_db
-  changed_when: "'CREATE DATABASE' in _pg_create_db.stdout"
-  failed_when: "'already exists' not in _pg_create_db.stderr and _pg_create_db.rc != 0"
+  changed_when: false
   delegate_to: "{{ groups['postgres_hosts'][0] }}"

@@ -10,6 +10,16 @@
     - { key: network.wan.ipv6,      value: "0" }
   when: lan_ipv6_disabled | default(false)
 
+- name: Disable IPv6 on LAN
+  community.openwrt.uci:
+    command: set
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  loop:
+    - { key: network.lan.ip6assign, value: "0" }
+    - { key: network.lan.ip6table,  value: "0" }
+  when: lan_ipv6_disabled | default(false)
+
 - name: Create IoT interface
   community.openwrt.uci:
     command: set

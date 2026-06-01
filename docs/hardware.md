@@ -3,7 +3,7 @@
 ## Router
 
 **Model**: [Cudy WR3000S v1.0](https://www.cudy.com/products/wr3000s-1-0)
-**OS**: [OpenWrt 25.12.2 (non U-Boot)](https://firmware-selector.openwrt.org/?version=25.12.2&target=mediatek%2Ffilogic&id=cudy_wr3000s-v1)
+**OS**: [OpenWrt 25.12.4 (OpenWrt U-Boot layout)](https://firmware-selector.openwrt.org/?version=25.12.4&target=mediatek%2Ffilogic&id=cudy_wr3000s-v1-ubootmod)
 **4PDA page**: [Маршрутизатор Cudy WR3000, WR3000E/S/H/P WiFi 6](https://4pda.to/forum/index.php?showtopic=1087457)
 
 ## Lab servers & PC
@@ -14,8 +14,8 @@
 | **CPU** | Core i7 7820X | Pentium G4400 | Core i9 13900KF |
 | **RAM** | 1x 16Gb DDR4 2133<br>Corsair Vengeance LPX `CMK32GX4M2A2666C` | 1x 8Gb DDR4 2133 | 2x 32Gb DDR5 6000 |
 | **MB** | ASRock X299 Taichi XE | ASUS B150M-A | MSI MPG Z790 CARBON WIFI |
-| **GPU** | Palit GeForce RTX 2080 SUPER JETSTREAM 8GB *(no fans)*| --- | MSI GeForce RTX 4090 SUPRIM X 24G |
-| **Storage** | Samsung 960 PRO 512GB<br>WD Green 1TB<br>3x WD Red 3TB *(almost dead)* | Samsung SSD 850 EVO 250GB<br>WD Blue 2TB | WD Black SN850 1Tb |
+| **GPU** | Palit GeForce RTX 2080 SUPER JETSTREAM 8GB<br>*(120mm fans instead of factory ones)*| --- | MSI GeForce RTX 4090 SUPRIM X 24G |
+| **Storage** | Samsung 960 PRO 512GB<br>WD Green 1TB<br>3x WD Red 3TB| Samsung SSD 850 EVO 250GB<br>WD Blue 2TB | WD Black SN850 1Tb<br>KingSpec NX-1TB 1Tb |
 | **PSU** | Corsair HX750i | 3Cott 500ATX | MSI MPG A1000G |
 | **Chassis** | Thermaltake Core V71 Tempered Glass Edition | Montech AIR 1000 Lite | Lian Li Lancool 216 |
 
@@ -52,6 +52,7 @@
 
 - TP-Link Archer C1200
 - Seagate Momentus Thin 320GB
-- SODIMM 32Gb DDR4 2400
+- Patriot Viper Steel PVS432G240C5S SODIMM DDR4 - 1x 32Gb 2400MHz
 - Intel Core i3 2330M
 - Intel Celeron B830
+- Kingston KC3000 1Tb

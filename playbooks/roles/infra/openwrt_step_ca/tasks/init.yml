@@ -1,0 +1,254 @@
+---
+- name: Check if step-ca is already initialized
+  community.openwrt.stat:
+    path: "{{ step_path }}/config/ca.json"
+  register: _step_ca_config
+
+- name: Prepare step-ca directories
+  block:
+    - name: Clean up old directories
+      community.openwrt.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ step_path }}/certs"
+        - "{{ step_path }}/secrets"
+
+    - name: Create step-ca directories
+      community.openwrt.command:
+        cmd: mkdir -p {{ step_path }}/config {{ step_path }}/certs {{ step_path }}/secrets {{ step_path }}/db
+      changed_when: false
+
+    - name: Write CA password file
+      community.openwrt.copy:
+        content: "{{ step_ca_password }}"
+        dest: "{{ step_path }}/secrets/ca_password.txt"
+        mode: '0600'
+
+    - name: Check if root cert exists in vault
+      ansible.builtin.set_fact:
+        _step_ca_has_existing: "{{ (vault_step_ca_root_cert | default('') | length > 0) and (vault_step_ca_root_key | default('') | length > 0) }}"
+
+    - name: Generate new CA
+      block:
+        - name: Initialize step-ca (generate new)
+          community.openwrt.command:
+            cmd: STEPPATH="{{ step_path }}" step ca init --pki --name="{{ step_ca_name }}" --deployment-type=standalone --password-file="{{ step_path }}/secrets/ca_password.txt"
+            uses_shell: true
+          changed_when: true
+
+        - name: Read generated root cert
+          community.openwrt.slurp:
+            src: "{{ step_path }}/certs/root_ca.crt"
+          register: _step_ca_root_cert
+
+        - name: Read generated root key
+          community.openwrt.slurp:
+            src: "{{ step_path }}/secrets/root_ca_key"
+          register: _step_ca_root_key
+
+        - name: Save CA keys to controller
+          ansible.builtin.copy:
+            content: "{{ item.value }}"
+            dest: "{{ item.dest }}"
+            mode: '0600'
+          delegate_to: localhost
+          run_once: true
+          loop:
+            - { value: "{{ _step_ca_root_cert.content | b64decode }}", dest: "../vault/step-ca-root-ca.crt" }
+            - { value: "{{ _step_ca_root_key.content | b64decode }}", dest: "../vault/step-ca-root-ca.key" }
+
+        - name: Display CA key save instructions
+          ansible.builtin.debug:
+            msg: |
+              === NEW CA GENERATED — KEYS SAVED TO CONTROLLER ===
+              Files saved in vault/ directory:
+                vault/step-ca-root-ca.crt
+                vault/step-ca-root-ca.key
+              Add to vault/secrets.yml:
+                vault_step_ca_root_cert: "{{ _step_ca_root_cert.content | regex_replace('\n', '') }}"
+                vault_step_ca_root_key: "{{ _step_ca_root_key.content | regex_replace('\n', '') }}"
+              Then re-run playbook.
+      when: not _step_ca_has_existing
+
+    - name: Restore existing CA from vault
+      block:
+        - name: Write existing root cert
+          community.openwrt.copy:
+            content: "{{ vault_step_ca_root_cert | b64decode }}"
+            dest: /tmp/vault_root.crt
+            mode: '0600'
+
+        - name: Write existing root key
+          community.openwrt.copy:
+            content: "{{ vault_step_ca_root_key | b64decode }}"
+            dest: /tmp/vault_root.key
+            mode: '0600'
+
+        - name: Initialize step-ca with existing root cert
+          community.openwrt.command:
+            cmd: STEPPATH="{{ step_path }}" step ca init --pki --name="{{ step_ca_name }}" --deployment-type=standalone --root=/tmp/vault_root.crt --key=/tmp/vault_root.key --key-password-file="{{ step_path }}/secrets/ca_password.txt" --password-file="{{ step_path }}/secrets/ca_password.txt"
+            uses_shell: true
+          changed_when: true
+
+        - name: Clean up temp files
+          community.openwrt.file:
+            path: "{{ item }}"
+            state: absent
+          loop:
+            - /tmp/vault_root.crt
+            - /tmp/vault_root.key
+      when: _step_ca_has_existing
+  when: not _step_ca_config.stat.exists
+
+- name: Check if JWK key exists on router
+  community.openwrt.stat:
+    path: "{{ step_path }}/secrets/jwk_pub.json"
+  register: _jwk_on_router
+
+- name: Check if JWK key exists in vault
+  ansible.builtin.set_fact:
+    _jwk_in_vault: "{{ vault_step_ca_jwk_pub | default('') | length > 0 }}"
+
+- name: Generate new JWK provisioner keys
+  block:
+    - name: Generate JWK provisioner keys
+      community.openwrt.command:
+        cmd: step crypto jwk create {{ step_path }}/secrets/jwk_pub.json {{ step_path }}/secrets/jwk_priv.json --no-password --insecure
+      changed_when: true
+
+    - name: Read JWK public key
+      community.openwrt.slurp:
+        src: "{{ step_path }}/secrets/jwk_pub.json"
+      register: _jwk_generated
+
+    - name: Save JWK key to controller
+      ansible.builtin.copy:
+        content: "{{ _jwk_generated.content | b64decode }}"
+        dest: "../vault/step-ca-jwk-pub.json"
+        mode: '0600'
+      delegate_to: localhost
+      run_once: true
+
+    - name: Display JWK key save instructions
+      ansible.builtin.debug:
+        msg: |
+          === NEW JWK KEY GENERATED — SAVED TO CONTROLLER ===
+          File saved: vault/step-ca-jwk-pub.json
+          Add base64-encoded version to vault/secrets.yml:
+            vault_step_ca_jwk_pub: "{{ _jwk_generated.content }}"
+          Then re-run playbook.
+  when:
+    - not _jwk_on_router.stat.exists
+    - not _jwk_in_vault
+
+- name: Restore JWK key from vault
+  block:
+    - name: Write JWK public key from vault
+      community.openwrt.copy:
+        content: "{{ vault_step_ca_jwk_pub | b64decode }}"
+        dest: "{{ step_path }}/secrets/jwk_pub.json"
+        mode: '0644'
+  when:
+    - not _jwk_on_router.stat.exists
+    - _jwk_in_vault
+
+- name: Read JWK public key
+  community.openwrt.command:
+    cmd: cat {{ step_path }}/secrets/jwk_pub.json
+  register: jwk_key_output
+  changed_when: false
+
+- name: Set JWK public key fact
+  ansible.builtin.set_fact:
+    jwk_public_key: "{{ jwk_key_output.stdout | from_json }}"
+
+- name: Render ca.json
+  community.openwrt.template:
+    src: ca.json.j2
+    dest: "{{ step_path }}/config/ca.json"
+    mode: '0600'
+    owner: step
+    group: step
+  register: _ca_json_rendered
+
+- name: Create intermediate key password file
+  community.openwrt.copy:
+    content: "{{ step_ca_password }}"
+    dest: "{{ step_path }}/secrets/intermediate_ca_key_pass"
+    mode: '0600'
+
+- name: Set ownership on step-ca data
+  community.openwrt.command:
+    cmd: chown -R step:step {{ step_path }}
+  changed_when: false
+
+- name: Deploy step-ca init script
+  community.openwrt.template:
+    src: step-ca.init.j2
+    dest: /etc/init.d/step-ca
+    mode: '0755'
+  register: _init_script_deployed
+
+- name: Force restart step-ca if configuration changed
+  community.openwrt.service:
+    name: step-ca
+    state: restarted
+  when: _ca_json_rendered.changed or _init_script_deployed.changed
+
+- name: Ensure step-ca service is running
+  community.openwrt.service:
+    name: step-ca
+    enabled: true
+    state: started
+
+- name: Wait for step-ca to start
+  community.openwrt.command:
+    cmd: curl -sk https://127.0.0.1:{{ step_ca_port }}/health
+  register: _health_check
+  until: '"ok" in _health_check.stdout'
+  retries: 10
+  delay: 3
+  changed_when: false
+
+- name: Download root CA certificate
+  community.openwrt.command:
+    cmd: curl -s --insecure https://127.0.0.1:{{ step_ca_port }}/roots.pem
+  register: roots_pem
+  changed_when: false
+
+- name: Create CA certificates directory
+  community.openwrt.file:
+    path: /usr/local/share/ca-certificates
+    state: directory
+    mode: '0755'
+
+- name: Install root CA certificate
+  community.openwrt.copy:
+    content: "{{ roots_pem.stdout }}"
+    dest: /usr/local/share/ca-certificates/step-ca-local-root.crt
+    mode: '0644'
+  register: _new_root_cert
+
+- name: Remove existing certificate file
+  community.openwrt.file:
+    path: /etc/ssl/certs/step-ca-local-root.crt
+    state: absent
+
+- name: Symlink certificate to /etc/ssl/certs
+  community.openwrt.file:
+    src: /usr/local/share/ca-certificates/step-ca-local-root.crt
+    path: /etc/ssl/certs/step-ca-local-root.crt
+    state: link
+
+- name: Generate certificate hash
+  community.openwrt.command:
+    cmd: openssl x509 -hash -noout -in /usr/local/share/ca-certificates/step-ca-local-root.crt
+  register: _cert_hash
+  changed_when: false
+
+- name: Create hash symlink
+  community.openwrt.file:
+    src: /usr/local/share/ca-certificates/step-ca-local-root.crt
+    path: "/etc/ssl/certs/{{ _cert_hash.stdout }}.0"
+    state: link

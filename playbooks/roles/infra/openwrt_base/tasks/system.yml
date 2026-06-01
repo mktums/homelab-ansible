@@ -2,6 +2,9 @@
 - name: Set timezone
   community.openwrt.uci:
     command: set
-    key: system.@system[0].timezone
-    value: "{{ openwrt_timezone }}"
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  loop:
+    - { key: "system.@system[0].timezone", value: "{{ openwrt_timezone }}" }
+    - { key: "system.@system[0].zonename", value: "{{ openwrt_timezone }}" }
   notify: Commit and reload system

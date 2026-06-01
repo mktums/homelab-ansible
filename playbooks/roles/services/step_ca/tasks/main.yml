@@ -1,6 +1,0 @@
----
-- name: Deploy step-ca (lab1 only)
-  block:
-    - ansible.builtin.include_tasks: deploy.yml
-    - ansible.builtin.include_tasks: cname.yml
-  when: inventory_hostname in groups.get('step_ca_hosts', [])

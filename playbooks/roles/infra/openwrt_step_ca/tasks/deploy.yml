@@ -1,0 +1,70 @@
+---
+- name: Create temporary download directory
+  community.openwrt.file:
+    path: /tmp/step-ca
+    state: directory
+    mode: '0755'
+
+- name: Create step-ca data directories
+  community.openwrt.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ step_path }}/config"
+    - "{{ step_path }}/certs"
+    - "{{ step_path }}/secrets"
+
+- name: Download step-ca binary
+  community.openwrt.command:
+    cmd: cd /tmp/step-ca && curl -LO https://dl.smallstep.com/certificates/docs-ca-install/latest/step-ca_linux_arm64.tar.gz
+    uses_shell: true
+  changed_when: true
+
+- name: Extract step-ca archive
+  community.openwrt.command:
+    cmd: cd /tmp/step-ca && tar -zxf step-ca_linux_arm64.tar.gz && rm step-ca_linux_arm64.tar.gz
+    uses_shell: true
+  changed_when: true
+
+- name: Install step-ca binary
+  community.openwrt.command:
+    cmd: mv /tmp/step-ca/step-ca_linux_arm64/step-ca /usr/bin/step-ca
+  changed_when: true
+
+- name: Download step CLI binary
+  community.openwrt.command:
+    cmd: cd /tmp/step-ca && curl -LO https://dl.smallstep.com/cli/docs-ca-install/latest/step_linux_arm64.tar.gz
+    uses_shell: true
+  changed_when: true
+
+- name: Extract step CLI archive
+  community.openwrt.command:
+    cmd: cd /tmp/step-ca && tar -zxf step_linux_arm64.tar.gz && rm step_linux_arm64.tar.gz
+    uses_shell: true
+  changed_when: true
+
+- name: Install step CLI binary
+  community.openwrt.command:
+    cmd: mv /tmp/step-ca/step_linux_arm64/bin/step /usr/bin/step
+    chdir: /tmp/step-ca
+  changed_when: true
+
+- name: Check if step user exists
+  community.openwrt.command:
+    cmd: id step
+    uses_shell: true
+  register: step_user
+  changed_when: false
+  failed_when: false
+
+- name: Create step system user
+  community.openwrt.command:
+    cmd: useradd --user-group --system --create-home --home-dir {{ step_path }} --shell /bin/false step
+    uses_shell: true
+  changed_when: true
+  when: step_user.rc != 0
+
+
+
+

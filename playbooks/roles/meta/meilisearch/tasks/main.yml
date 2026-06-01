@@ -1,7 +1,6 @@
 ---
 - name: Deploy Meilisearch (lab1 only)
   block:
-    - ansible.builtin.include_tasks: deploy.yml
-    # Register CNAME after deployment (DNS must exist before services reference it)
     - ansible.builtin.include_tasks: cname.yml
+    - ansible.builtin.include_tasks: deploy.yml
   when: inventory_hostname in groups.get('meilisearch_hosts', [])

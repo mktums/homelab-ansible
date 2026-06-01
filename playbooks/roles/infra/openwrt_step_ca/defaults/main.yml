@@ -1,0 +1,17 @@
+# step-ca on OpenWrt defaults
+
+# Paths
+step_path: "/etc/step-ca"
+step_ca_binary: "/usr/bin/step-ca"
+
+# Network
+step_ca_port: 8443
+
+# Display name for CA (shown in cert subjects)
+step_ca_name: "Homelab CA"
+
+# CNAME subdomain (without .{{ lan_domain }})
+step_ca_cname: "step-ca"
+
+# Password (from vault)
+step_ca_password: "{{ vault_step_ca_password }}"

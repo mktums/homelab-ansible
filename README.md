@@ -28,11 +28,12 @@ Internet
     │
 ┌───┴─────────────────────────────────────┐
 │  router (Cudy WR3000S)  10.10.10.1      │
-│  OpenWrt                                │
+│  OpenWrt 25.12.4                        │
 │  DNS: unbound (127.0.0.1:5335)          │
 │       dnsmasq → unbound → DoT           │
 │       upstreams: Cloudflare + Google    │
 │  adblock-lean (medium preset)           │
+│  step-ca       :8443  (ACME CA, native)  │
 └───┬─────────────────┬───────────────────┘
     │ LAN             │ IoT
     │ 10.10.10.0/24   │ 10.10.30.0/24
@@ -41,7 +42,6 @@ Internet
     ├── lab1  10.10.10.10  (MAC 70:85:c2:63:58:59)
     │   Ubuntu Server 24.04
     │   Docker host
-    │   ├── step-ca       :8443   (ACME CA, not behind Traefik)
     │   ├── traefik        :80/:443
     │   │   └── traefik.lab1.lan  (dashboard, basic auth)
     │   ├── dockhand       (via Traefik)
@@ -75,7 +75,7 @@ Wi-Fi:
 DNS (*.lan resolved by dnsmasq):
   lab1.lan            → 10.10.10.10  (DHCP reservation by MAC)
   lab2.lan            → 10.10.10.11  (DHCP reservation by MAC)
-  step-ca.lan         → lab1.lan     (CNAME)
+  step-ca.lan         → openwrt.lan  (CNAME)
   traefik.lab1.lan    → lab1.lan     (CNAME)
   traefik.lab2.lan    → lab2.lan     (CNAME)
   dockhand.lan        → lab1.lan     (CNAME)
@@ -142,13 +142,13 @@ ansible-playbook playbooks/servers.yml   # servers only
 
 ### 5. Install root CA on your devices
 
-Copy the root certificate from lab1: `scp lab1:/srv/docker_data/step-ca/certs/root_ca.crt .`
+Copy the root certificate from the router: `scp root@10.10.10.1:/etc/step-ca/certs/root_ca.crt .`
 
 | Device | How to install |
 |--------|----------------|
-| Linux | `sudo cp homelab-ca.crt /usr/local/share/ca-certificates/ && sudo update-ca-certificates` |
-| macOS | `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain homelab-ca.crt` |
-| Windows | Double-click `homelab-ca.crt` → Install Certificate → **Local Machine** → **Trusted Root Certification Authorities** → Finish. Restart Chrome/Edge (`chrome://restart`). |
+| Linux | `sudo cp root_ca.crt /usr/local/share/ca-certificates/ && sudo update-ca-certificates` |
+| macOS | `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain root_ca.crt` |
+| Windows | Double-click `root_ca.crt` → Install Certificate → **Local Machine** → **Trusted Root Certification Authorities** → Finish. Restart Chrome/Edge (`chrome://restart`). |
 | Android | Settings → Security → install certificate |
 | iOS | AirDrop or email the file → tap to install → Settings → General → VPN & Device Management → trust it |
 
@@ -212,10 +212,19 @@ vault_router_ssh_pass: "..."
 vault_wifi_main_password: "..."    # Main network (WPA3/WPA2)
 vault_wifi_iot_password: "..."     # IoT network (WPA2)
 
-# ── step-ca ────────────────────────────────────────────────────────────────
+# ── step-ca (on router) ───────────────────────────────────────────────────
 
 # Password for step-ca ACME account
 vault_step_ca_password: "..."
+
+# Root CA certificate (base64, generated on first run)
+vault_step_ca_root_cert: ""
+
+# Root CA private key (base64, generated on first run)
+vault_step_ca_root_key: ""
+
+# JWK public key (base64, generated on first run)
+vault_step_ca_jwk_pub: ""
 
 # ── Traefik ────────────────────────────────────────────────────────────────
 
@@ -290,7 +299,6 @@ ansible-playbook playbooks/servers.yml --tags vaultwarden
 ansible-playbook playbooks/servers.yml --tags qbittorrent
 ansible-playbook playbooks/servers.yml --tags inpx_web
 ansible-playbook playbooks/servers.yml --tags linkwarden
-ansible-playbook playbooks/servers.yml --tags step_ca
 ansible-playbook playbooks/servers.yml --tags traefik
 
 # All servers (base + all services)
@@ -365,10 +373,9 @@ Disable it: `chrome://settings/security` → "Use secure DNS" → off. Same for 
 
 **ACME cert not issuing / Traefik serving default cert**
 
-step-ca needs to reach the Traefik host on port 443 to complete the TLS-ALPN-01 challenge. Make sure:
+step-ca (on the router) needs to reach the Traefik host on port 443 to complete the TLS-ALPN-01 challenge. Make sure:
 
-- step-ca container uses the router (`{{ lan_dns }}`) as its DNS server, not `172.17.0.1` (Docker bridge DNS doesn't resolve `.lan`)
-- Port 443 is reachable on the Traefik host from lab1
+- Port 443 is reachable on the Traefik host from the router
 - `acme.json` has `600` permissions — if corrupt, delete it and restart Traefik
 
 **DockHand agent (Hawser) not reachable**

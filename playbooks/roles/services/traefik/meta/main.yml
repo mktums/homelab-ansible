@@ -1,3 +1,2 @@
 ---
-dependencies:
-  - role: step_ca
+# step-ca dependency removed — now runs on router via openwrt_step_ca role

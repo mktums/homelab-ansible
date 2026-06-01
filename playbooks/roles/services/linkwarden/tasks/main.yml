@@ -1,4 +1,6 @@
 ---
+- ansible.builtin.include_tasks: cname.yml
+
 # Create directories, write .env file, then deploy via compose
 - name: Create Linkwarden dirs
   ansible.builtin.file:
@@ -48,5 +50,4 @@
     pull: missing
   notify: Restart linkwarden
 
-# Register CNAME after deployment (DNS must exist before traefik routes)
-- ansible.builtin.include_tasks: cname.yml
+

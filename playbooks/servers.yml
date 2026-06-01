@@ -2,15 +2,17 @@
 # Single-play deployment with meta dependency resolution
 #
 # Dependency chain (resolved automatically via role meta/main.yml):
-#   server_base → docker → step_ca → install_ca_cert → traefik → [services]
+#   server_base → docker → install_ca_cert → traefik → [services]
 #   postgres + meilisearch → linkwarden (via meta deps)
+#
+# step-ca runs on router via openwrt_step_ca role (router.yml)
 #
 # Roles are deduplicated within this play — dependencies run once.
 # Guards (`when: inventory_hostname in groups[...`) prevent execution on wrong hosts.
 #
 # Usage:
 #   ansible-playbook servers.yml                     # full deploy
-#   ansible-playbook servers.yml --tags traefik      # traefik + its deps (step_ca)
+#   ansible-playbook servers.yml --tags traefik      # traefik
 #   ansible-playbook servers.yml --limit lab2        # all roles, only on lab2
 #   ansible-playbook servers.yml --tags beszel_hub,beszel_agent -e "beszel_token=..."  # selective
 #
@@ -30,10 +32,6 @@
       when: inventory_hostname in groups.get('docker_hosts', [])
 
     # CA + reverse proxy chain
-    - role: step_ca
-      tags: [step_ca]
-      when: inventory_hostname in groups.get('step_ca_hosts', [])
-
     - role: install_ca_cert
       tags: [install_ca_cert]
 

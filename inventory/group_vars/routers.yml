@@ -76,6 +76,10 @@ openwrt_packages:
   - tcpdump
   - htop
   - iptables-nft
+  - drill
+  - curl
+  - shadow-useradd
+  - openssl-util
 
 # adblock-lean — medium preset, cron schedule only (rest comes from gen_config)
 adblock_cron_schedule: "0 3 * * *"

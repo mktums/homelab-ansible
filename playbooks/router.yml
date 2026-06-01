@@ -21,3 +21,5 @@
     - role: community.openwrt.init
     - role: openwrt_base
     - role: openwrt_adblock
+    - role: openwrt_step_ca
+      tags: [step_ca]

@@ -1,0 +1,26 @@
+{
+  "root": "{{ step_path }}/certs/root_ca.crt",
+  "crt": "{{ step_path }}/certs/intermediate_ca.crt",
+  "key": "{{ step_path }}/secrets/intermediate_ca_key",
+  "key_password_file": "{{ step_path }}/secrets/ca_password.txt",
+  "dnsNames": ["{{ step_ca_cname }}.{{ lan_domain }}"],
+  "address": ":{{ step_ca_port }}",
+  "backdate": "1m0s",
+  "db": {
+    "type": "badgerV2",
+    "dataSource": "{{ step_path }}/db"
+  },
+  "authority": {
+    "provisioners": [
+      {
+        "type": "JWK",
+        "name": "admin@{{ step_ca_cname }}.{{ lan_domain }}",
+        "key": {{ jwk_public_key | to_json(sort_keys=True) }}
+      },
+      {
+        "type": "ACME",
+        "name": "acme"
+      }
+    ]
+  }
+}

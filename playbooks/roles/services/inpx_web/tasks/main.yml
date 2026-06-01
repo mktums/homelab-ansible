@@ -1,4 +1,4 @@
 ---
+- ansible.builtin.include_tasks: cname.yml
 - ansible.builtin.include_tasks: build.yml
 - ansible.builtin.include_tasks: deploy.yml
-- ansible.builtin.include_tasks: cname.yml
