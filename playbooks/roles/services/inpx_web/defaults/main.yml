@@ -6,7 +6,7 @@ inpx_web_image_tag: "local"
 
 # Paths
 inpx_web_data_dir: "{{ docker_data_base }}/inpx-web"
-inpx_web_config_dir: "/opt/inpx-web"
+inpx_web_config_dir: "{{ ansible_opt_base }}/inpx-web"
 
 # Network
 inpx_web_port: 12380

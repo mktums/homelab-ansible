@@ -1,4 +1,3 @@
 ---
 dependencies:
   - role: traefik
-  - role: postgres

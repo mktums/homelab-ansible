@@ -1,2 +1,3 @@
 ---
-# step-ca dependency removed — now runs on router via openwrt_step_ca role
+dependencies:
+  - role: install_ca_cert

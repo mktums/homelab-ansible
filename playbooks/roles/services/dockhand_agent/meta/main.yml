@@ -1,3 +1,4 @@
 ---
-dependencies:
-  - role: dockhand
+# dockhand_agent connects remotely to dockhand on lab2 via Hawser.
+# No meta dependency on dockhand — they run on different hosts.
+# Only needs docker (for Hawser container) which is already in servers.yml before this role.

@@ -9,10 +9,62 @@
     name: "{{ common_packages }}"
     state: present
 
+- name: Install bash-completion package
+  ansible.builtin.package:
+    name: bash-completion
+    state: present
+
+- name: Ensure bash-completion is sourced in /etc/bash.bashrc
+  ansible.builtin.blockinfile:
+    path: /etc/bash.bashrc
+    block: |
+      if ! shopt -oq posix; then
+        if [ -f /usr/share/bash-completion/bash_completion ]; then
+          . /usr/share/bash-completion/bash_completion
+        elif [ -f /etc/bash_completion ]; then
+          . /etc/bash_completion
+        fi
+      fi
+    marker: "# {mark} ANSIBLE MANAGED bash-completion"
+    state: present
+    insertafter: EOF
+
 - name: Install NVIDIA drivers and CUDA
   when: nvidia_gpu | default(false)
-  ansible.builtin.apt:
-    name:
-      - nvidia-driver-590
-      - nvidia-cuda-toolkit
-    state: present
+  block:
+    - name: Install NVIDIA drivers and CUDA (Ubuntu)
+      when: ansible_facts['distribution'] == 'Ubuntu'
+      ansible.builtin.apt:
+        name:
+          - nvidia-driver-590
+          - nvidia-cuda-toolkit
+        state: present
+
+    - name: Add Debian non-free components for NVIDIA (Debian)
+      when: ansible_facts['distribution'] == 'Debian'
+      ansible.builtin.deb822_repository:
+        name: "{{ item.name }}"
+        types: "{{ item.types | default('deb') }}"
+        uris: "{{ item.uris }}"
+        suites: "{{ item.suites }}"
+        components: "{{ item.components }}"
+        state: present
+      loop:
+        - { name: 'debian-main', uris: 'http://deb.debian.org/debian/', suites: "{{ ansible_facts['distribution_release'] }}", components: ['main', 'contrib', 'non-free', 'non-free-firmware'] }
+        - { name: 'debian-security', uris: 'http://security.debian.org/debian-security/', suites: "{{ ansible_facts['distribution_release'] }}-security", components: ['contrib', 'non-free', 'main', 'non-free-firmware'] }
+        - { name: 'debian-updates', uris: 'http://deb.debian.org/debian/', suites: "{{ ansible_facts['distribution_release'] }}-updates", components: ['non-free-firmware', 'non-free', 'contrib', 'main'] }
+
+    - name: Update apt cache after adding non-free repos (Debian)
+      when: ansible_facts['distribution'] == 'Debian'
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Install NVIDIA drivers and CUDA (Debian)
+      when: ansible_facts['distribution'] == 'Debian'
+      ansible.builtin.apt:
+        name:
+          - linux-headers-amd64
+          - nvidia-kernel-dkms
+          - nvidia-driver
+          - nvidia-cuda-toolkit
+        state: present

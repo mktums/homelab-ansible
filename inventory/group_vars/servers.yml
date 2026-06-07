@@ -56,13 +56,14 @@ common_packages:
 # Base directories
 ansible_opt_base: "/opt/ansible"
 
-docker_data_base: "/srv/docker_data"
+docker_data_base: "/srv/docker_data"  # Docker persistent data: /srv/docker_data/<service>
+srv_base: "/srv"                      # Non-docker service data: /srv/<service>
 
 # Base images
 alpine_image_tag: "3.23"
 
 # Shared downloads directory (override per-host if needed)
-downloads_dir: "/data/downloads"
+downloads_dir: "/mnt/data/downloads"
 
 docker_users:
   - "{{ admin_user }}"

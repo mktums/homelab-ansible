@@ -9,7 +9,7 @@ kopia_opt_dir: "{{ ansible_opt_base }}/kopia_server"
 kopia_config_dir: "{{ docker_data_base }}/kopia_server/config"
 kopia_cache_dir: "{{ docker_data_base }}/kopia_server/cache"
 kopia_logs_dir: "{{ docker_data_base }}/kopia_server/logs"
-kopia_repo_path: "/mnt/reds/!backup/repository"
+kopia_repo_path: "/mnt/backup/kopia"
 
 # Network (internal, Traefik terminates TLS externally)
 kopia_internal_port: 51514

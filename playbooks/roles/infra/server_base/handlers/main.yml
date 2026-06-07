@@ -1,7 +1,12 @@
 ---
 - name: "System | Notify reboot required"
   ansible.builtin.debug:
-    msg: "NOTE: Zswap configuration has been applied to GRUB. A manual reboot is required to activate it on {{ inventory_hostname }}."
+    msg: "NOTE: GRUB configuration has been changed. A manual reboot is required to activate it on {{ inventory_hostname }}."
+
+- name: Restart journald
+  ansible.builtin.systemd:
+    name: systemd-journald
+    state: restarted
 
 - name: Reload systemd daemon
   ansible.builtin.systemd:

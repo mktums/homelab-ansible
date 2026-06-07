@@ -1,13 +1,15 @@
 ---
 nvidia_gpu: true
 
-downloads_dir: "/mnt/reds/downloads"
+downloads_dir: "/mnt/data/downloads"
 
-system_btrfs_scrub_enabled: true
+system_btrfs_scrub_enabled: false
 
 system_optimize_mounts:
   - /
-  - /mnt/scratch
+  - /mnt/data
+  - /mnt/backup
+  - /mnt/shared
   - /mnt/green
 
 # Beszel agent configuration
@@ -21,9 +23,10 @@ beszel_smart_cap_add:
   - SYS_RAWIO
   - SYS_ADMIN
 beszel_extra_volumes:
-  - /mnt/reds/.beszel:/extra-filesystems/sda__reds:ro
-  - /mnt/scratch/.beszel:/extra-filesystems/sdb1__scratch:ro
-  - /mnt/green/.beszel:/extra-filesystems/sdd1__green:ro
+  - /mnt/data/.beszel:/extra-filesystems/sda__data:ro
+  - /mnt/backup/.beszel:/extra-filesystems/sdb__backup:ro
+  - /mnt/shared/.beszel:/extra-filesystems/sdc__shared:ro
+  - /mnt/green/.beszel:/extra-filesystems/sdd__green:ro
 
 # ── Kopia backup sources ────────────────────────────────────────────────
 backup_sources:
@@ -40,39 +43,3 @@ backup_sources:
           keep_annual: 3
     actions:
       before-snapshot-root: true
-
-  vaultwarden:
-    hostname: server
-    paths:
-      "{{ vaultwarden_data_dir }}":
-        retention:
-          keep_latest: 10
-          keep_hourly: 48
-          keep_daily: 30
-          keep_monthly: 12
-          keep_annual: 5
-    actions:
-      before-snapshot-root: true
-      after-snapshot-root: true
-
-  linkwarden:
-    hostname: server
-    paths:
-      "{{ linkwarden_data_dir }}/data":
-        retention:
-          keep_latest: 10
-          keep_daily: 30
-          keep_monthly: 12
-          keep_annual: 5
-
-  dockhand:
-    hostname: server
-    paths:
-      "{{ dockhand_data_dir }}":
-        retention:
-          keep_latest: 10
-          keep_hourly: 48
-          keep_daily: 7
-          keep_weekly: 4
-          keep_monthly: 24
-          keep_annual: 3

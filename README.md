@@ -1,6 +1,6 @@
 # Homelab Ansible
 
-Provisioning and configuration for an OpenWrt router and Ubuntu servers.
+Provisioning and configuration for an OpenWrt router and Debian/Ubuntu servers.
 
 ## Requirements
 
@@ -40,29 +40,35 @@ Internet
     │                 │ (isolated, WAN only)
     │
     ├── lab1  10.10.10.10  (MAC 70:85:c2:63:58:59)
-    │   Ubuntu Server 24.04
+    │   Debian/Ubuntu Server
     │   Docker host
     │   ├── traefik        :80/:443
     │   │   └── traefik.lab1.lan  (dashboard, basic auth)
-    │   ├── dockhand       (via Traefik)
-    │   │   └── dockhand.lan
-    │   ├── vaultwarden    (via Traefik)
-    │   │   └── vw.lan
     │   ├── postgres       :5432
     │   │   └── db.lan
-    │   ├── linkwarden     (via Traefik)
-    │   │   └── links.lan
-    │   ├── beszel         :8090 (via Traefik)
-    │   │   └── beszel.lan
+    │   ├── meilisearch    :7700 (internal, for linkwarden)
+    │   ├── kopia server   :51514 (localhost only)
+    │   ├── kopia agent
+    │   ├── dockhand agent (Hawser, connects to dockhand.lan)
     │   └── qbittorrent    (via Traefik)
     │       └── qbit.lab1.lan
     │
     └── lab2  10.10.10.11  (MAC 2c:56:dc:7b:69:d1)
-        Ubuntu Server 24.04
+        Debian/Ubuntu Server
         Docker host
         ├── traefik        :80/:443
         │   └── traefik.lab2.lan  (dashboard, basic auth)
-        ├── dockhand agent (Hawser, connects to dockhand.lan)
+        ├── vaultwarden    (via Traefik)
+        │   └── vw.lan
+        ├── dockhand       (via Traefik)
+        │   └── dockhand.lan
+        ├── linkwarden     (via Traefik)
+        │   └── links.lan
+        ├── beszel         :8090 (via Traefik)
+        │   └── beszel.lan
+        ├── kopia agent
+        ├── cyberchef      (via Traefik)
+        │   └── chef.lan
         ├── qbittorrent    (via Traefik)
         │   └── qbit.lab2.lan
         └── inpx-web       (via Traefik)
@@ -78,14 +84,15 @@ DNS (*.lan resolved by dnsmasq):
   step-ca.lan         → openwrt.lan  (CNAME)
   traefik.lab1.lan    → lab1.lan     (CNAME)
   traefik.lab2.lan    → lab2.lan     (CNAME)
-  dockhand.lan        → lab1.lan     (CNAME)
-  vw.lan              → lab1.lan     (CNAME)
+  dockhand.lan        → lab2.lan     (CNAME)
+  vw.lan              → lab2.lan     (CNAME)
   qbit.lab1.lan       → lab1.lan     (CNAME)
   qbit.lab2.lan       → lab2.lan     (CNAME)
   lib.lan             → lab2.lan     (CNAME)
   db.lan              → lab1.lan     (CNAME)
-  links.lan           → lab1.lan     (CNAME)
-  beszel.lan          → lab1.lan     (CNAME)
+  links.lan           → lab2.lan     (CNAME)
+  beszel.lan          → lab2.lan     (CNAME)
+  chef.lan            → lab2.lan     (CNAME)
 ```
 
 ---
@@ -380,11 +387,11 @@ step-ca (on the router) needs to reach the Traefik host on port 443 to complete 
 
 **DockHand agent (Hawser) not reachable**
 
-Hawser on lab2 connects to DockHand on lab1 via HTTP on port 2376. Ensure:
+Hawser on lab1 connects to DockHand on lab2 via HTTP on port 2376. Ensure:
 
 - Hawser container is healthy (`docker ps`)
-- Port `2376` is reachable from lab1 (`curl http://lab2.lan:2376/_hawser/health`)
-- CA cert is installed on lab2 (`update-ca-certificates --fresh`)
+- Port `2376` is reachable from lab2 (`curl http://lab1.lan:2376/_hawser/health`)
+- CA cert is installed on lab1 (`update-ca-certificates --fresh`)
 
 **Verify DNS-over-TLS is working**
 

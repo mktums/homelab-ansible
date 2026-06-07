@@ -12,8 +12,9 @@
 
 - name: Create PostgreSQL database "{{ pg_db_name }}"
   ansible.builtin.command:
-    cmd: "docker compose exec -T postgres psql -U {{ postgres_user | default('postgres') }} -d postgres -c \"SELECT 'CREATE DATABASE {{ pg_db_name }} OWNER {{ pg_db_user }}' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '{{ pg_db_name }}')\\gexec\""
+    cmd: "docker compose exec -T postgres psql -U {{ postgres_user | default('postgres') }} -d postgres -c \"CREATE DATABASE {{ pg_db_name }} OWNER {{ pg_db_user }}\""
   args:
     chdir: "{{ postgres_opt_dir }}"
   changed_when: false
+  failed_when: false
   delegate_to: "{{ groups['postgres_hosts'][0] }}"

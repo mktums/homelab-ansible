@@ -10,6 +10,7 @@
   register: _root_cert_response
   run_once: true
   changed_when: false
+  tags: ['always']
   when: not ansible_check_mode
 
 - name: Install root CA into system trust store
@@ -18,6 +19,7 @@
     dest: /usr/local/share/ca-certificates/step-ca-root.crt
     mode: "0644"
   notify: Update CA certificates
+  tags: ['always']
   when:
     - not ansible_check_mode
     - _root_cert_response is defined
