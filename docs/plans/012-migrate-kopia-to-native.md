@@ -3,8 +3,49 @@
 ## Motivation
 
 Kopia server runs as a Docker container. The kopia binary supports running
-as a native daemon with built-in snapshot scheduling. This eliminates systemd
-timers on agent hosts.
+as a native daemon with built-in snapshot scheduling. This eliminates Docker
+for the server and replaces systemd timers on agent hosts with the built-in
+scheduler.
+
+## Architecture
+
+Each host with backups runs its own `kopia server` instance. The server's
+built-in scheduler only triggers snapshots for **local sources** — where the
+source hostname matches the server's `--override-hostname`.
+
+```mermaid
+graph LR
+    subgraph lab1["lab1 (Primary)"]
+        S1["kopia server\n--override-hostname=lab1\n--ui --control-api\n:51514 (TLS)"]
+        R["Repository\n/mnt/backup/kopia"]
+        V["Verify timer"]
+        X["Sync timer\n(secondary + tertiary)"]
+        S1 --> R
+        V --> R
+        X --> R
+    end
+
+    subgraph lab2["lab2 (Client)"]
+        S2["kopia server\n--override-hostname=lab2\n--no-ui --no-control-api\n:51514 (TLS)"]
+        S2 -.->|"repository connect server"| S1
+    end
+
+    style S1 fill:#4CAF50,color:#fff
+    style S2 fill:#2196F3,color:#fff
+    style R fill:#FF9800,color:#000
+```
+
+**Primary server (lab1):**
+- Owns the repository (`repository filesystem` at `/mnt/backup/kopia`)
+- Runs with full features: UI, control API, scheduler
+- Manages verify + sync-to secondary/tertiary via systemd timers
+- Schedules snapshots for lab1 paths (postgres, etc.)
+
+**Client server (lab2+):**
+- Connects to primary's repo via `repository connect server`
+- Runs headless: `--no-ui --no-control-api`
+- Scheduler triggers snapshots for lab2 paths (vaultwarden, linkwarden, etc.)
+- No verify/sync — only primary manages repository maintenance
 
 ## Current state
 
@@ -15,85 +56,81 @@ timers on agent hosts.
 
 ## Target state
 
-Both server and agent run the same `kopia server start` binary via systemd.
+Both primary and client servers run `kopia server start` via systemd.
 
-**lab1 (server)**
+**lab1 (primary)**
 
-- Connect: `repository filesystem` (local repo at `/mnt/reds/!backup/repository`)
+- Connect: `repository filesystem` (local repo at `/mnt/backup/kopia`)
 - Config: `/opt/ansible/kopia_server/`
-- Verification: systemd timer (only server runs verification)
+- TLS: step-ca cert via Ansible
+- Features: UI + control API + scheduler enabled
+- Verification: systemd timer (only primary runs verification)
 - Sync-to secondary/tertiary: systemd timer
-- Snapshots: kopia policy scheduler (`--snapshot-time-crontab`)
 
-**lab2 (agent)**
+**lab2 (client)**
 
-- Connect: `repository remote` (connects to lab1 via HTTPS)
+- Connect: `repository connect server` → primary on lab1
 - Config: `/opt/ansible/kopia_agent/`
-- Snapshots: kopia policy scheduler (`--snapshot-time-crontab`)
+- TLS: step-ca cert via Ansible
+- Features: `--no-ui --no-control-api` (headless scheduler only)
+- Snapshots: kopia policy scheduler (`--snapshot-interval` / crontab)
 
 ## Design decisions
 
 | Decision | Value | Rationale |
 | --- | --- | --- |
 | Repository location | Unchanged | Existing data stays in place |
-| Installation method | .deb from GitHub | Same as agent, consistent |
+| Installation method | .deb from GitHub | Same as current agent, consistent |
 | Run as | root | Backup paths owned by root |
-| Snapshot scheduling | kopia policy crontab | Built-in scheduler replaces systemd timers |
-| Verification | systemd timer | Kopia scheduler lacks verification support |
-| Sync-to | systemd timer | Kopia scheduler lacks sync-to support |
-| TLS | step-ca cert via Ansible | Kopia lacks ACME support |
-| Agent to Server | control API over HTTPS | Existing control user provides API access |
-| Roles | Two separate roles | Avoid guard complexity |
-| Migration | Manual with SOP | One-time transition, not automated |
+| Primary server | Full features (UI, control API, scheduler) | Web UI access, user management, verify/sync |
+| Client server | Headless (`--no-ui --no-control-api`) | Scheduler only, no web interface needed |
+| Snapshot scheduling | kopia policy (`--snapshot-interval`) | Built-in scheduler replaces systemd timers |
+| Verification | systemd timer on primary | Kopia scheduler lacks verification support |
+| Sync-to | systemd timer on primary | Kopia scheduler lacks sync-to support |
+| TLS | step-ca cert via Ansible | Kopia lacks ACME support, step-ca already in infra |
+| Roles | Two separate roles | `kopia_server` (primary), `kopia_agent` (client) |
 
 ## Implementation steps
 
-### 1. SOP for cleanup (manual, before Ansible)
+### 1. Create `kopia_server` role (primary)
 
-- [ ] Stop Docker kopia server
-- [ ] Preserve repository (`/mnt/reds/!backup/repository`)
-- [ ] Preserve config dir (`/srv/docker_data/kopia_server/config/`)
-- [ ] Remove Docker compose stack
-- [ ] Remove Docker image
-
-### 2. Update `kopia_server` role
-
-- [ ] Replace Docker deploy with native binary (.deb install)
+- [ ] Install native binary (.deb from GitHub)
 - [ ] Create systemd service unit (`kopia-server.service`)
 - [ ] Environment file for secrets (not visible in `ps aux`)
-- [ ] TLS cert management via step-ca (check expiration, 30-90 days)
-- [ ] Keep sync-to secondary/tertiary as systemd timers
-- [ ] Keep verification as systemd timer
-- [ ] Remove Docker-related tasks
+- [ ] TLS cert management via step-ca (check expiration, rotate 30-90 days)
+- [ ] `server start` with full features: `--ui`, `--control-api`, `--override-hostname`
+- [ ] Sync-to secondary/tertiary as systemd timers
+- [ ] Verification as systemd timer
 
-### 3. Update `kopia_agent` role
+### 2. Update `kopia_agent` role (client)
 
-- [ ] Remove systemd snapshot timers
-- [ ] Add schedule field to `backup_sources` in inventory (crontab format)
-- [ ] Use `kopia policy set --snapshot-time-crontab` for schedules
-- [ ] Agent connects to server via control API for user management
-- [ ] Config paths move to `/opt/ansible/kopia_agent/`
+- [ ] Replace systemd timers with `kopia server start` via systemd
+- [ ] `server start` with headless flags: `--no-ui --no-control-api --override-hostname`
+- [ ] Connect to primary repo via `repository connect server`
+- [ ] Use `kopia policy set --snapshot-interval` for schedules
+- [ ] Environment file for repo password and server credentials
+- [ ] TLS cert management via step-ca
 
-### 4. Update inventory
+### 3. Update inventory
 
-- [ ] Add `schedule` field to each `backup_sources` entry (crontab format)
-- [ ] Update `kopia_server_host` variable
-- [ ] Move config paths to `/opt/ansible/`
+- [ ] Add `schedule` field to each `backup_sources` entry (interval format: `1h`, `2h`, `daily`, etc.)
+- [ ] Add `kopia_server_url` for client connection (`https://lab1:51514`)
+- [ ] Update config paths to `/opt/ansible/kopia_server/` and `/opt/ansible/kopia_agent/`
 
-### 5. Update `servers.yml`
+### 4. Update `servers.yml`
 
-- [ ] Adjust role order if needed
+- [ ] Adjust role order: `kopia_server` before `kopia_agent` (client depends on primary)
 - [ ] Verify tags work correctly
 
 ## Affected files
 
-- `playbooks/roles/infra/kopia_server/` (full rewrite, Docker to native)
-- `playbooks/roles/infra/kopia_agent/tasks/register_source.yml` (remove timers, add policy schedules)
+- `playbooks/roles/infra/kopia_server/` (new: native binary, primary server)
+- `playbooks/roles/infra/kopia_agent/` (update: timers → headless server)
 - `inventory/host_vars/lab1.yml` (add schedule to backup_sources)
-- `inventory/host_vars/lab2.yml` (add backup_sources with schedule)
-- `inventory/group_vars/servers.yml` (update kopia paths)
+- `inventory/host_vars/lab2.yml` (add schedule to backup_sources)
+- `inventory/group_vars/servers.yml` (update kopia paths, add server URL)
 - `docs/plans/` (this file)
 
 ## Difficulty
 
-Hard. Requires SOP, manual migration steps, role rewrite, inventory changes.
+Hard. Full role rewrite for `kopia_server`, significant changes to `kopia_agent`, inventory updates.

@@ -15,11 +15,19 @@
       {
         "type": "JWK",
         "name": "admin@{{ step_ca_cname }}.{{ lan_domain }}",
-        "key": {{ jwk_public_key | to_json(sort_keys=True) }}
+        "key": {{ jwk_public_key | to_json(sort_keys=True) }},
+        "claims": {
+          "defaultTLSCertDuration": "{{ step_ca_jwk_default_ttl }}",
+          "maxTLSCertDuration": "{{ step_ca_jwk_max_ttl }}"
+        }
       },
       {
         "type": "ACME",
-        "name": "acme"
+        "name": "acme",
+        "claims": {
+          "defaultTLSCertDuration": "{{ step_ca_acme_default_ttl }}",
+          "maxTLSCertDuration": "{{ step_ca_acme_max_ttl }}"
+        }
       }
     ]
   }

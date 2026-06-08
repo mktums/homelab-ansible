@@ -2,7 +2,7 @@
 # Single-play deployment with meta dependency resolution
 #
 # Dependency chain (resolved automatically via role meta/main.yml):
-#   server_base → docker → install_ca_cert → traefik → [services]
+#   server_base → docker → step_cli → traefik → [services]
 #   postgres + meilisearch → linkwarden (via meta deps)
 #
 # step-ca runs on router via openwrt_step_ca role (router.yml)
@@ -32,8 +32,8 @@
       when: inventory_hostname in groups.get('docker_hosts', [])
 
     # CA + reverse proxy chain
-    - role: install_ca_cert
-      tags: [install_ca_cert]
+    - role: step_cli
+      tags: [step_cli]
 
     # Meta services (shared infrastructure)
     - role: meilisearch

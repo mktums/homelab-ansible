@@ -1,9 +1,9 @@
 ---
-- name: Install step-ca root certificate on all servers
+- name: Install step-cli on all servers
   hosts: servers
   become: true
-  tags: [install_ca_cert]
+  tags: [step_cli]
   vars_files:
     - ../vault/secrets.yml
   roles:
-    - role: install_ca_cert
+    - role: step_cli

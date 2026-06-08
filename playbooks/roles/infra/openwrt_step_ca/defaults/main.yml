@@ -15,3 +15,11 @@ step_ca_cname: "step-ca"
 
 # Password (from vault)
 step_ca_password: "{{ vault_step_ca_password }}"
+
+# ACME certificate TTL
+step_ca_acme_default_ttl: "24h"
+step_ca_acme_max_ttl: "8760h"  # 1 year
+
+# JWK certificate TTL
+step_ca_jwk_default_ttl: "24h"
+step_ca_jwk_max_ttl: "8760h"  # 1 year

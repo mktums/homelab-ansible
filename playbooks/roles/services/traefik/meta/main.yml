@@ -1,3 +1,3 @@
 ---
 dependencies:
-  - role: install_ca_cert
+  - role: step_cli

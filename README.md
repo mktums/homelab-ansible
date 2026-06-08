@@ -233,6 +233,9 @@ vault_step_ca_root_key: ""
 # JWK public key (base64, generated on first run)
 vault_step_ca_jwk_pub: ""
 
+# JWK private key (base64, from router /etc/step-ca/secrets/jwk_priv.json)
+vault_step_ca_jwk_priv: ""
+
 # ── Traefik ────────────────────────────────────────────────────────────────
 
 # Password for Traefik dashboard (basic auth)
