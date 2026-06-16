@@ -1,0 +1,6 @@
+[Unit]
+Description=Kopia repository sync-to secondary ({{ kopia_sync_secondary_repo_path }})
+
+[Service]
+Type=oneshot
+ExecStart={{ kopia_opt_dir }}/kopia-sync-secondary/kopia-sync-secondary.sh

@@ -1,2 +1,0 @@
-# Samsung T7 Shield (serial {{ kopia_sync_tertiary_serial }}) — trigger Kopia sync-to tertiary on plug-in
-SUBSYSTEM=="block", ACTION=="add", ENV{ID_USB_SERIAL_SHORT}=="{{ kopia_sync_tertiary_serial }}", SYMLINK+="t7_shield%n", RUN+="/usr/bin/systemctl start kopia-sync-tertiary.service"

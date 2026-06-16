@@ -39,7 +39,7 @@ Internet
     │ 10.10.10.0/24   │ 10.10.30.0/24
     │                 │ (isolated, WAN only)
     │
-    ├── lab1  10.10.10.10  (MAC 70:85:c2:63:58:59)
+    ├── lab1  10.10.10.10  (MAC 70:85:c2:63:58:5b)
     │   Debian/Ubuntu Server
     │   Docker host
     │   ├── traefik        :80/:443
@@ -47,26 +47,26 @@ Internet
     │   ├── postgres       :5432
     │   │   └── db.lan
     │   ├── meilisearch    :7700 (internal, for linkwarden)
-    │   ├── kopia server   :51514 (localhost only)
-    │   ├── kopia agent
+    │   ├── kopia server   :51514 (native)
+    │   ├── kopia agent    (native)
     │   ├── dockhand agent (Hawser, connects to dockhand.lan)
-    │   └── qbittorrent    (via Traefik)
-    │       └── qbit.lab1.lan
+    │   ├── qbittorrent    (via Traefik)
+    │   │   └── qbit.lab1.lan
+    │   ├── vaultwarden    (via Traefik)
+    │   │   └── vw.lan
+    │   └── linkwarden     (via Traefik)
+    │       └── links.lan
     │
     └── lab2  10.10.10.11  (MAC 2c:56:dc:7b:69:d1)
         Debian/Ubuntu Server
         Docker host
         ├── traefik        :80/:443
         │   └── traefik.lab2.lan  (dashboard, basic auth)
-        ├── vaultwarden    (via Traefik)
-        │   └── vw.lan
         ├── dockhand       (via Traefik)
         │   └── dockhand.lan
-        ├── linkwarden     (via Traefik)
-        │   └── links.lan
         ├── beszel         :8090 (via Traefik)
         │   └── beszel.lan
-        ├── kopia agent
+        ├── kopia agent    (native)
         ├── cyberchef      (via Traefik)
         │   └── chef.lan
         ├── qbittorrent    (via Traefik)
@@ -85,12 +85,12 @@ DNS (*.lan resolved by dnsmasq):
   traefik.lab1.lan    → lab1.lan     (CNAME)
   traefik.lab2.lan    → lab2.lan     (CNAME)
   dockhand.lan        → lab2.lan     (CNAME)
-  vw.lan              → lab2.lan     (CNAME)
+  vw.lan              → lab1.lan     (CNAME)
   qbit.lab1.lan       → lab1.lan     (CNAME)
   qbit.lab2.lan       → lab2.lan     (CNAME)
   lib.lan             → lab2.lan     (CNAME)
   db.lan              → lab1.lan     (CNAME)
-  links.lan           → lab2.lan     (CNAME)
+  links.lan           → lab1.lan     (CNAME)
   beszel.lan          → lab2.lan     (CNAME)
   chef.lan            → lab2.lan     (CNAME)
 ```
@@ -138,14 +138,14 @@ Add all required variables — see the [Vault](#vault) section for the full list
 ansible-playbook playbooks/site.yml
 ```
 
-This runs both `router.yml` (OpenWrt configuration) and `servers.yml` (step-ca init, all services). You can also run them separately:
+This runs both plays: router (OpenWrt configuration) and servers (step-ca init, all services). You can also run them separately:
 
 ```bash
-ansible-playbook playbooks/router.yml    # router only
-ansible-playbook playbooks/servers.yml   # servers only
+ansible-playbook playbooks/site.yml --tags router    # router only
+ansible-playbook playbooks/site.yml --tags servers   # servers only
 ```
 
-> The router playbook does not support `--check` mode.
+> The router play does not support `--check` mode.
 
 ### 5. Install root CA on your devices
 
@@ -165,9 +165,9 @@ Do this once per device. After this, all `*.lan` HTTPS services will show a gree
 >
 > 1. Settings → Tokens → create a token → add to `vault_beszel_token`
 > 2. Add System → copy the public key → add to `vault_beszel_hub_key`
-> 3. Re-run `ansible-playbook playbooks/servers.yml --tags beszel_hub,beszel_agent` to deploy agents
+> 3. Re-run `ansible-playbook playbooks/site.yml --tags beszel_hub,beszel_agent` to deploy agents
 >
-> **S.M.A.R.T. monitoring**: The Beszel agent is configured with S.M.A.R.T. device mappings and capabilities (`SYS_RAWIO`, `SYS_ADMIN`) for disk health monitoring. Additional filesystems can be monitored by adding extra volume mounts in `inventory/host_vars/<host>.yml`:
+> **S.M.A.R.T. monitoring**: The Beszel agent supports disk health monitoring via S.M.A.R.T. device mappings and Linux capabilities (`SYS_RAWIO`, `SYS_ADMIN`). Enable per-host by overriding in `inventory/host_vars/<host>.yml`:
 > ```yaml
 > beszel_smart_devices:
 >   - /dev/sda:/dev/sda
@@ -179,7 +179,7 @@ Do this once per device. After this, all `*.lan` HTTPS services will show a gree
 >   - /<volume_path>/.beszel:/extra-filesystems/sda1:ro
 > ```
 >
-> **Note**: `beszel.yml` deploys the hub container on lab1 and agent containers on both lab1 and lab2. The hub token and hub key are configured separately from the agent credentials.
+> **Note**: The hub runs on lab2 and agent containers run on both lab1 and lab2. The hub token and hub key are configured separately from the agent credentials.
 
 ---
 
@@ -197,130 +197,42 @@ Store the vault password in `.vault_pass` (gitignored) for passwordless runs:
 echo "your-vault-password" > .vault_pass && chmod 600 .vault_pass
 ```
 
-Expected vault variables:
-
-```yaml
-# ── Common ──────────────────────────────────────────────────────────────────
-
-# bcrypt salt for password hashing (exactly 22 chars of [./A-Za-z0-9])
-# generate: python3 -c "import bcrypt; print(bcrypt.gensalt()[7:].decode())"
-vault_bcrypt_salt: ".................."
-
-# Admin user credentials
-vault_admin_user: "..."
-vault_admin_ssh_pubkey: "ssh-ed25519 AAAA..."
-
-# ── Router (openwrt_base) ──────────────────────────────────────────────────
-
-# SSH password for router root user
-vault_router_ssh_pass: "..."
-
-# Wi-Fi passwords
-vault_wifi_main_password: "..."    # Main network (WPA3/WPA2)
-vault_wifi_iot_password: "..."     # IoT network (WPA2)
-
-# ── step-ca (on router) ───────────────────────────────────────────────────
-
-# Password for step-ca ACME account
-vault_step_ca_password: "..."
-
-# Root CA certificate (base64, generated on first run)
-vault_step_ca_root_cert: ""
-
-# Root CA private key (base64, generated on first run)
-vault_step_ca_root_key: ""
-
-# JWK public key (base64, generated on first run)
-vault_step_ca_jwk_pub: ""
-
-# JWK private key (base64, from router /etc/step-ca/secrets/jwk_priv.json)
-vault_step_ca_jwk_priv: ""
-
-# ── Traefik ────────────────────────────────────────────────────────────────
-
-# Password for Traefik dashboard (basic auth)
-vault_traefik_dashboard_password: "..."
-
-# ── Beszel ─────────────────────────────────────────────────────────────────
-
-# Admin user credentials
-vault_beszel_admin_email: "..."
-vault_beszel_admin_password: "..."
-
-# Hub token (from Beszel UI: Settings → Tokens)
-vault_beszel_token: ""
-
-# Hub public key (from Beszel UI: Add System → public key)
-vault_beszel_hub_key: ""
-
-# ── DockHand ────────────────────────────────────────────────────────────────
-
-# Admin and service user credentials
-vault_dockhand_admin_user: "..."
-vault_dockhand_admin_password: "..."
-vault_dockhand_ansible_user: "..."
-vault_dockhand_ansible_password: "..."
-vault_dockhand_db_password: "..."
-
-# ── Vaultwarden ────────────────────────────────────────────────────────────
-
-# Admin emergency token (set via Vaultwarden web UI after first login)
-vault_vaultwarden_admin_token: "..."
-
-# ── qBittorrent ────────────────────────────────────────────────────────────
-
-# Admin password for qBittorrent
-vault_qbittorrent_password: "..."
-
-# ── Postgres ───────────────────────────────────────────────────────────────
-
-# Password for the default database user
-vault_postgres_password: "..."
-
-# ── Linkwarden ─────────────────────────────────────────────────────────────
-
-# NextAuth secret (generate: openssl rand -hex 32)
-vault_linkwarden_nextauth_secret: ""
-
-# MeiliSearch master key (generate: openssl rand -hex 32)
-vault_linkwarden_meili_master_key: ""
-
-# Database password for Linkwarden
-vault_linkwarden_db_password: "..."
-```
+See [`vault/secrets.example.yml`](vault/secrets.example.yml) for the full list of required variables, ordered by playbook execution.
 
 ---
 
 ## Running playbooks
 
 ```bash
-# Router only
-ansible-playbook playbooks/router.yml
-
-# Base server setup (server_base + docker)
-ansible-playbook playbooks/server_base.yml
-ansible-playbook playbooks/docker.yml
-
-# Single services (via tags)
-ansible-playbook playbooks/servers.yml --tags postgres
-ansible-playbook playbooks/servers.yml --tags beszel_hub,beszel_agent
-ansible-playbook playbooks/servers.yml --tags dockhand,dockhand_agent
-ansible-playbook playbooks/servers.yml --tags vaultwarden
-ansible-playbook playbooks/servers.yml --tags qbittorrent
-ansible-playbook playbooks/servers.yml --tags inpx_web
-ansible-playbook playbooks/servers.yml --tags linkwarden
-ansible-playbook playbooks/servers.yml --tags traefik
-
-# All servers (base + all services)
-ansible-playbook playbooks/servers.yml
-
 # Everything (router + servers)
 ansible-playbook playbooks/site.yml
+
+# By layer
+ansible-playbook playbooks/site.yml --tags layer_barebone
+ansible-playbook playbooks/site.yml --tags layer_os_services
+ansible-playbook playbooks/site.yml --tags docker_services_infra
+ansible-playbook playbooks/site.yml --tags docker_services_tools
+ansible-playbook playbooks/site.yml --tags docker_services_shared
+ansible-playbook playbooks/site.yml --tags docker_services_apps
+
+# Single service
+ansible-playbook playbooks/site.yml --tags traefik
+ansible-playbook playbooks/site.yml --tags beszel_hub,beszel_agent
+ansible-playbook playbooks/site.yml --tags dockhand,dockhand_agent
+
+# Limit to specific host
+ansible-playbook playbooks/site.yml --limit lab2
+
+# Router only
+ansible-playbook playbooks/site.yml --tags router
+
+# Servers only
+ansible-playbook playbooks/site.yml --tags servers
 ```
 
 Add `--ask-vault-pass` if not using `.vault_pass`.
 
-The router playbook does not support `--check` mode.
+The router play does not support `--check` mode.
 
 ---
 
@@ -348,16 +260,16 @@ LC_CTYPE=ru_RU.UTF-8    # Cyrillic recognized as valid letters
 ### To an existing lab
 
 1. Add the host to the service's inventory group in `inventory/hosts.yml`
-2. Run `ansible-playbook playbooks/servers.yml`
+2. Run `ansible-playbook playbooks/site.yml`
 
 ### New service
 
-1. Create `playbooks/roles/<service>/` with `tasks/main.yml`, `handlers/main.yml`, `defaults/main.yml`
-2. Add CNAME registration in `tasks/main.yml` using `include_role: common` with `tasks_from: register_cname`
+1. Create `playbooks/roles/docker_services/<category>/<name>/` with `tasks/main.yml`, `handlers/main.yml`, `defaults/main.yml`
+2. Add CNAME registration using `include_role: common_tasks` with `tasks_from: register_cname`
 3. Add a group under `children` in `inventory/hosts.yml`
-4. Add the role to `servers.yml` with appropriate `when:` guard
+4. Add the role to `site.yml` with appropriate `when:` guard and layer tag
 5. Add any secrets to `vault/secrets.yml` and vars to `inventory/group_vars/servers.yml`
-6. Run `ansible-playbook playbooks/servers.yml --tags <service>`
+6. Run `ansible-playbook playbooks/site.yml --tags <service>`
 
 Minimal Traefik labels for a new container:
 

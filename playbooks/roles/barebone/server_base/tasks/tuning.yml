@@ -1,0 +1,241 @@
+---
+- name: System | Check active swap devices
+  ansible.builtin.command:
+    cmd: swapon --show
+  register: _swapon_show
+  changed_when: false
+  failed_when: false
+
+- name: System | Manage swap
+  when: system_swap_enabled | default(true) | bool
+  block:
+    - name: Swap | Calculate swap size based on RAM
+      ansible.builtin.set_fact:
+        system_swap_size_mb: "{{ (ansible_facts['memtotal_mb'] * 2) if ansible_facts['memtotal_mb'] < 2048 else ansible_facts['memtotal_mb'] if ansible_facts['memtotal_mb'] <= 8192 else 8192 }}"
+
+    - name: Swap | Check existing swap file
+      ansible.builtin.stat:
+        path: "{{ system_swap_file }}"
+      register: swap_file_stat
+
+    - name: Swap | Disable current swap file (for resize)
+      ansible.builtin.command:
+        cmd: "swapoff {{ system_swap_file }}"
+      when:
+        - swap_file_stat.stat.exists
+        - swap_file_stat.stat.size != (system_swap_size_mb | int * 1024 * 1024)
+        - system_swap_file in _swapon_show.stdout
+      changed_when: true
+
+    - name: Swap | Create or resize swap file
+      ansible.builtin.command:
+        cmd: "dd if=/dev/zero of={{ system_swap_file }} bs=1M count={{ system_swap_size_mb | int }} status=progress"
+      when:
+        - >-
+          not swap_file_stat.stat.exists or
+          swap_file_stat.stat.size != (system_swap_size_mb | int * 1024 * 1024)
+      changed_when: true
+
+    - name: Swap | Set permissions on swap file
+      ansible.builtin.file:
+        path: "{{ system_swap_file }}"
+        owner: root
+        group: root
+        mode: "0600"
+
+    - name: Swap | Format swap file
+      ansible.builtin.command:
+        cmd: "mkswap {{ system_swap_file }}"
+      when:
+        - >-
+          not swap_file_stat.stat.exists or
+          swap_file_stat.stat.size != (system_swap_size_mb | int * 1024 * 1024)
+      changed_when: true
+
+    - name: Swap | Register swap file in fstab
+      ansible.posix.mount:
+        src: "{{ system_swap_file }}"
+        path: none
+        fstype: swap
+        opts: sw
+        state: present
+
+    - name: Swap | Enable swap
+      ansible.builtin.command:
+        cmd: "swapon {{ system_swap_file }}"
+      when: system_swap_file not in _swapon_show.stdout
+      changed_when: true
+
+- name: System | Disable swap
+  when: not (system_swap_enabled | default(true) | bool)
+  block:
+    - name: Swap | Turn off swap if active
+      ansible.builtin.command:
+        cmd: "swapoff {{ system_swap_file }}"
+      when: system_swap_file in _swapon_show.stdout
+      changed_when: true
+
+    - name: Swap | Remove swap entry from fstab
+      ansible.posix.mount:
+        src: "{{ system_swap_file }}"
+        path: none
+        fstype: swap
+        opts: sw
+        state: absent
+
+    - name: Swap | Remove swap file
+      ansible.builtin.file:
+        path: "{{ system_swap_file }}"
+        state: absent
+
+- name: System | Set swappiness and cache pressure
+  ansible.builtin.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: true
+    sysctl_file: /etc/sysctl.d/99-homelab.conf
+  loop:
+    - { key: 'vm.swappiness', value: "{{ system_swappiness }}" }
+    - { key: 'vm.vfs_cache_pressure', value: "{{ system_vfs_cache_pressure }}" }
+
+- name: System | Set file descriptor and network tuning
+  ansible.builtin.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: true
+    sysctl_file: /etc/sysctl.d/99-homelab.conf
+  loop:
+    - { key: 'fs.file-max', value: "2097152" }
+    - { key: 'net.ipv4.tcp_fin_timeout', value: "15" }
+    - { key: 'net.ipv4.tcp_keepalive_time', value: "600" }
+    - { key: 'net.ipv4.tcp_max_syn_backlog', value: "8192" }
+    - { key: 'net.core.somaxconn', value: "4096" }
+    - { key: 'net.ipv4.ip_local_port_range', value: "1024 65535" }
+
+- name: System | Create journald drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+    mode: "0755"
+
+- name: System | Configure journald retention
+  ansible.builtin.template:
+    src: journald.conf.j2
+    dest: /etc/systemd/journald.conf.d/99-homelab.conf
+    mode: "0644"
+  notify: Restart journald
+
+- name: System | Configure APT cache cleanup
+  ansible.builtin.copy:
+    content: |
+      # Managed by Ansible
+      APT::Periodic::AutocleanInterval "7";
+      BinDir::Cache "none";
+    dest: /etc/apt/apt.conf.d/99-homelab
+    mode: "0644"
+
+- name: System | Enable fstrim.timer
+  ansible.builtin.systemd:
+    name: fstrim.timer
+    state: started
+    enabled: yes
+
+- name: System | Create Docker cgroup swap-accounting configuration
+  ansible.builtin.copy:
+    content: |
+      # Managed by Ansible — enable cgroup memory and swap accounting for Docker
+      GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT cgroup_enable=memory swapaccount=1"
+    dest: /etc/default/grub.d/99-docker-cgroup.cfg
+    mode: '0644'
+  register: docker_cgroup_grub_cfg
+  when: system_docker_cgroup_swap_accounting | default(true) | bool
+
+- name: System | Create Zswap configuration file
+  ansible.builtin.copy:
+    content: |
+      # Managed by Ansible
+      GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT zswap.enabled=1 zswap.compressor=zstd zswap.max_pool_percent=25 zswap.zpool=zsmalloc"
+    dest: /etc/default/grub.d/99-zswap.cfg
+    mode: '0644'
+  register: zswap_grub_cfg
+  when: system_zswap_enabled | default(false) | bool
+
+- name: System | Configure zswap compressor via sysfsutils
+  ansible.builtin.lineinfile:
+    path: /etc/sysfs.conf
+    regexp: '^module/zswap/parameters/compressor'
+    line: 'module/zswap/parameters/compressor = zstd'
+    create: yes
+    mode: '0644'
+  when: system_zswap_enabled | default(false) | bool
+
+- name: System | Update GRUB
+  ansible.builtin.command: /usr/sbin/update-grub
+  when: >
+    (docker_cgroup_grub_cfg is defined and docker_cgroup_grub_cfg.changed) or
+    (zswap_grub_cfg is defined and zswap_grub_cfg.changed)
+  changed_when: >
+    (docker_cgroup_grub_cfg is defined and docker_cgroup_grub_cfg.changed) or
+    (zswap_grub_cfg is defined and zswap_grub_cfg.changed)
+  notify: "System | Notify reboot required"
+
+- name: System | Optimize mount options
+  ansible.builtin.mount:
+    path: "{{ item }}"
+    src: "{{ (ansible_facts['mounts'] | selectattr('mount', 'equalto', item) | first).device | default('') }}"
+    fstype: "{{ (ansible_facts['mounts'] | selectattr('mount', 'equalto', item) | first).fstype | default('auto') }}"
+    opts: "{{ (ansible_facts['mounts'] | selectattr('mount', 'equalto', item) | first).options }},noatime"
+    state: mounted
+    fstab: /etc/fstab
+  loop: "{{ system_optimize_mounts | default(['/']) }}"
+  when:
+    - item in ansible_facts['mounts'] | map(attribute='mount') | list
+    - "'noatime' not in (ansible_facts['mounts'] | selectattr('mount', 'equalto', item) | first).options"
+
+- name: Storage | Get current reserved blocks for data mounts
+  ansible.builtin.command:
+    cmd: tune2fs -l {{ item.device }}
+  register: tune2fs_info
+  changed_when: false
+  loop: "{{ ansible_facts['mounts'] }}"
+  when:
+    - item.mount in (system_optimize_mounts | default(['/']))
+    - item.mount != '/'
+    - item.fstype in ['ext2', 'ext3', 'ext4']
+
+- name: Storage | Set reserved blocks to 0% for data mounts (ext4 only)
+  ansible.builtin.command:
+    cmd: tune2fs -m 0 {{ item.item.device }}
+  loop: "{{ tune2fs_info.results | selectattr('skipped', 'equalto', false) | list }}"
+  when:
+    - item.stdout is defined
+    - "'Reserved block count:' in item.stdout"
+    - (item.stdout | regex_search('Reserved block count:\s*(\\d+)', evaluate=True))[0] != '0'
+
+- name: Storage | Create BTRFS scrub script directory
+  ansible.builtin.file:
+    path: /opt/ansible/scripts
+    state: directory
+    mode: "0755"
+  when: system_btrfs_scrub_enabled | bool
+
+- name: Storage | Deploy BTRFS scrub service, timer and script
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{ item.mode | default('0644') }}"
+  loop:
+    - { src: 'btrfs-scrub.sh.j2',   dest: '/opt/ansible/scripts/btrfs-scrub.sh', mode: '0755' }
+    - { src: 'btrfs-scrub.service.j2', dest: '/etc/systemd/system/btrfs-scrub.service' }
+    - { src: 'btrfs-scrub.timer.j2', dest: '/etc/systemd/system/btrfs-scrub.timer' }
+  when: system_btrfs_scrub_enabled | bool
+  notify: Reload systemd daemon
+
+- name: Storage | Enable BTRFS scrub timer
+  ansible.builtin.systemd:
+    name: btrfs-scrub.timer
+    state: started
+    enabled: yes
+  when: system_btrfs_scrub_enabled | bool

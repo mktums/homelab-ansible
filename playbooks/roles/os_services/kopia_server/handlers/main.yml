@@ -1,0 +1,12 @@
+---
+- name: Restart Kopia server
+  ansible.builtin.systemd:
+    name: kopia-server
+    state: restarted
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Reload udev
+  ansible.builtin.command: udevadm control --reload-rules

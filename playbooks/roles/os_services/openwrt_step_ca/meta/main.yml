@@ -1,0 +1,3 @@
+---
+dependencies:
+  - role: barebone/openwrt_base

@@ -1,3 +1,152 @@
 ---
-- import_playbook: router.yml
-- import_playbook: servers.yml
+# Full homelab deploy: router + servers
+#
+# Layer model (roles grouped by deployment layer):
+#   Layer 1: Barebone     — OS setup, users, configs
+#   Layer 2: OS Services  — native binaries, system-level services
+#   Layer 3: Docker       — containerized services (infra, tools, shared, apps)
+#
+# Usage:
+#   ansible-playbook site.yml                                     # full deploy
+#   ansible-playbook site.yml --tags layer_barebone               # barebone only
+#   ansible-playbook site.yml --tags layer_os_services            # OS services only
+#   ansible-playbook site.yml --tags docker_services_infra        # infra services only
+#   ansible-playbook site.yml --tags docker_services_tools        # tools only
+#   ansible-playbook site.yml --tags docker_services_shared       # shared deps only
+#   ansible-playbook site.yml --tags docker_services_apps         # apps only
+#   ansible-playbook site.yml --tags traefik                      # single service
+#   ansible-playbook site.yml --tags router                       # router only
+#   ansible-playbook site.yml --tags servers                      # servers only
+#   ansible-playbook site.yml --limit lab2                        # all roles, only on lab2
+#
+
+# ── Play 1: OpenWrt router ─────────────────────────────────────────────
+# OpenWrt has no Python interpreter and very limited storage — automatic fact gathering
+# (which requires Python) is impractical to install on the device.
+- name: Configure OpenWrt router
+  hosts: routers
+  gather_facts: false
+  become: false
+  tags: [router]
+  vars_files:
+    - ../vault/secrets.yml
+
+  pre_tasks:
+    - name: Warn that check mode is not supported for this playbook
+      ansible.builtin.fail:
+        msg: >
+          The router playbook does not support --check mode.
+          Re-run without --check.
+      when: ansible_check_mode
+
+  roles:
+    - role: community.openwrt.init
+      tags: [always]
+    - role: barebone/openwrt_base
+      tags: [layer_barebone]
+    - role: barebone/openwrt_adblock
+      tags: [layer_barebone]
+    - role: os_services/openwrt_step_ca
+      tags: [step_ca, layer_os_services]
+
+# ── Play 2: Servers ────────────────────────────────────────────────────
+# Dependency chain (resolved automatically via role meta/main.yml):
+#   barebone/server_base → os_services/step_cli → docker_services/infra/traefik → [services]
+#   docker_services/shared/postgres + docker_services/shared/meilisearch → linkwarden
+#
+# Roles are deduplicated within this play — dependencies run once.
+# Guards (`when: inventory_hostname in groups[...`) prevent execution on wrong hosts.
+- name: Deploy homelab services
+  hosts: servers
+  gather_facts: false
+  become: true
+  tags: [servers]
+  vars_files:
+    - ../vault/secrets.yml
+
+  pre_tasks:
+    - name: Gather facts
+      ansible.builtin.setup: {}
+      tags: [always]
+
+  roles:
+    # ── Layer 1: Barebone ──────────────────────────────────────────────
+    # OS setup, users, configs (runs on all servers)
+    - role: barebone/server_base
+      tags: [server_base, layer_barebone]
+
+    # ── Layer 2: OS Services ───────────────────────────────────────────
+    # Native binaries, system-level services
+    - role: os_services/docker
+      tags: [docker, layer_os_services]
+      when: inventory_hostname in groups.get('docker_hosts', [])
+
+    - role: os_services/step_cli
+      tags: [step_cli, layer_os_services]
+
+    - role: os_services/kopia_server
+      tags: [kopia_server, layer_os_services]
+      when: inventory_hostname in groups.get('kopia_server_hosts', [])
+
+    - role: os_services/kopia_agent
+      tags: [kopia_agent, layer_os_services]
+      when: inventory_hostname in groups.get('kopia_agent_hosts', [])
+
+    # ── Layer 3: Docker Services ───────────────────────────────────────
+    # Containerized services behind Traefik
+
+    # ── 3a: Shared dependencies ────────────────────────────────────────
+    # Databases, caches — exist to support other services
+    - role: docker_services/shared/meilisearch
+      tags: [meilisearch, docker_services_shared, docker_services]
+      when: inventory_hostname in groups.get('meilisearch_hosts', [])
+
+    - role: docker_services/shared/postgres
+      tags: [postgres, docker_services_shared, docker_services]
+      when: inventory_hostname in groups.get('postgres_hosts', [])
+
+    # ── 3b: Infra services ─────────────────────────────────────────────
+    # Platform services: proxy, monitoring, backups, Docker management
+    - role: docker_services/infra/traefik
+      tags: [traefik, docker_services_infra, docker_services]
+      when: inventory_hostname in groups.get('traefik_hosts', [])
+
+    - role: docker_services/infra/beszel_hub
+      tags: [beszel_hub, docker_services_infra, docker_services]
+      when: inventory_hostname in groups.get('beszel_hosts', [])
+
+    - role: docker_services/infra/beszel_agent
+      tags: [beszel_agent, docker_services_infra, docker_services]
+      when: inventory_hostname in groups.get('beszel_agent_hosts', [])
+
+    - role: docker_services/infra/dockhand
+      tags: [dockhand, docker_services_infra, docker_services]
+      when: inventory_hostname in groups.get('dockhand_hosts', [])
+
+    - role: docker_services/infra/dockhand_agent
+      tags: [dockhand_agent, docker_services_infra, docker_services]
+      when: inventory_hostname in groups.get('dockhand_agent_hosts', [])
+
+    # ── 3c: Tools ──────────────────────────────────────────────────────
+    # Stateless utilities (browser-based, no data lifecycle)
+    - role: docker_services/tools/cyberchef
+      tags: [cyberchef, docker_services_tools, docker_services]
+      when: inventory_hostname in groups.get('cyberchef_hosts', [])
+
+    # ── 3d: Apps ───────────────────────────────────────────────────────
+    # User-facing applications with data lifecycle
+    - role: docker_services/apps/vaultwarden
+      tags: [vaultwarden, docker_services_apps, docker_services]
+      when: inventory_hostname in groups.get('vaultwarden_hosts', [])
+
+    - role: docker_services/apps/qbittorrent
+      tags: [qbittorrent, docker_services_apps, docker_services]
+      when: inventory_hostname in groups.get('qbittorrent_hosts', [])
+
+    - role: docker_services/apps/inpx_web
+      tags: [inpx_web, docker_services_apps, docker_services]
+      when: inventory_hostname in groups.get('inpx_web_hosts', [])
+
+    - role: docker_services/apps/linkwarden
+      tags: [linkwarden, docker_services_apps, docker_services]
+      when: inventory_hostname in groups.get('linkwarden_hosts', [])

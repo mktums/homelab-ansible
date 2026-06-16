@@ -1,9 +1,0 @@
-[Unit]
-Description=Kopia repository sync-to secondary ({{ kopia_sync_secondary_repo_path }})
-Requires=docker.socket
-After=docker.socket
-
-[Service]
-Type=oneshot
-ExecStartPre=-/bin/systemctl is-active docker.service
-ExecStart={{ kopia_opt_dir }}/kopia-secondary/kopia-secondary.sh

@@ -1,0 +1,86 @@
+---
+- name: Install step-cli apt dependencies
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+    state: present
+
+- name: Add Smallstep APT repository
+  ansible.builtin.deb822_repository:
+    name: smallstep
+    architectures: [amd64]
+    components: [main]
+    suites: [debs]
+    types: deb
+    uris: [https://packages.smallstep.com/stable/debian]
+    signed_by: "https://packages.smallstep.com/keys/apt/repo-signing-key.gpg"
+
+- name: Update APT cache
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Install step-cli
+  ansible.builtin.apt:
+    name: "{{ step_cli_package }}"
+    state: present
+
+- name: Check if step CA is already bootstrapped
+  ansible.builtin.stat:
+    path: /root/.step/config/defaults.json
+  register: _step_bootstrap_done
+  changed_when: false
+
+- name: Fetch root CA certificate
+  ansible.builtin.uri:
+    url: "https://{{ step_ca_cname }}.{{ lan_domain }}:{{ step_ca_port }}/roots.pem"
+    return_content: true
+    validate_certs: false
+  register: _step_roots_pem
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Compute root CA fingerprint
+  ansible.builtin.shell: |
+    echo '{{ _step_roots_pem.content }}' | openssl x509 -fingerprint -sha256 -noout | cut -d= -f2 | tr -d ':' | tr '[:upper:]' '[:lower:]'
+  register: _step_ca_fingerprint
+  changed_when: false
+  when:
+    - not ansible_check_mode
+    - not _step_bootstrap_done.stat.exists
+
+- name: Bootstrap step CA
+  ansible.builtin.command:
+    cmd: "step-cli ca bootstrap --ca-url https://{{ step_ca_cname }}.{{ lan_domain }}:{{ step_ca_port }} --fingerprint {{ _step_ca_fingerprint.stdout }} --force"
+  changed_when: true
+  when:
+    - not ansible_check_mode
+    - not _step_bootstrap_done.stat.exists
+    - _step_ca_fingerprint is defined
+
+- name: Install root CA into system trust store
+  ansible.builtin.copy:
+    content: "{{ _step_roots_pem.content }}"
+    dest: /usr/local/share/ca-certificates/step-ca-root.crt
+    mode: "0644"
+  notify: Update CA certificates
+  when: not ansible_check_mode
+
+- name: Create step secrets directory
+  ansible.builtin.file:
+    path: /root/.step/secrets
+    state: directory
+    mode: "0700"
+  when:
+    - not ansible_check_mode
+    - vault_step_ca_jwk_priv is defined and vault_step_ca_jwk_priv | length > 0
+
+- name: Install JWK private key
+  ansible.builtin.copy:
+    content: "{{ vault_step_ca_jwk_priv | b64decode }}"
+    dest: /root/.step/secrets/jwk_priv.json
+    mode: "0600"
+  when:
+    - not ansible_check_mode
+    - vault_step_ca_jwk_priv is defined and vault_step_ca_jwk_priv | length > 0

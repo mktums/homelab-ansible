@@ -1,7 +1,0 @@
----
-- name: Register Vaultwarden CNAME
-  ansible.builtin.include_role:
-    name: common
-    tasks_from: register_cname
-  vars:
-    cname_name: "{{ vaultwarden_cname }}.{{ lan_domain }}"

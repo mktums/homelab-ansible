@@ -1,0 +1,45 @@
+#!/bin/bash
+set -e
+
+DEVICE="/dev/t7_shield1"
+MOUNT="{{ kopia_sync_external_mount_point }}"
+REPO="{{ kopia_sync_external_repo_path }}"
+
+# Wait for symlink to appear (udev creates it)
+for i in $(seq 1 30); do
+  [ -b "$DEVICE" ] && break
+  sleep 1
+done
+[ -b "$DEVICE" ] || { echo "Device $DEVICE not found"; exit 1; }
+
+# Create mount point and repo dir if needed
+[ -d "$MOUNT" ] || mkdir -p "$MOUNT"
+
+# Mount if not already mounted
+mountpoint -q "$MOUNT" || mount "$DEVICE" "$MOUNT"
+
+[ -d "$REPO" ] || mkdir -p "$REPO"
+
+# Purge macOS AppleDouble files (exFAT workaround for kopia #3022)
+find "$MOUNT" -name '._*' -delete 2>/dev/null || true
+
+export KOPIA_PASSWORD={{ kopia_repo_password }}
+
+# Sync blobs from primary → external
+/usr/bin/kopia repository sync-to filesystem \
+  --config-file={{ kopia_config_dir }}/repository.config \
+  --path $REPO \
+  --delete --no-progress
+
+# Maintenance on external (ephemeral config for identity check)
+/usr/bin/kopia repository connect filesystem \
+  --config-file={{ kopia_config_dir }}/sync/external.config \
+  --path=$REPO
+/usr/bin/kopia maintenance set \
+  --config-file={{ kopia_config_dir }}/sync/external.config \
+  --owner={{ kopia_maintenance_owner }}
+/usr/bin/kopia maintenance run \
+  --config-file={{ kopia_config_dir }}/sync/external.config \
+  --full
+
+wall "External backup synced — safe to unmount"

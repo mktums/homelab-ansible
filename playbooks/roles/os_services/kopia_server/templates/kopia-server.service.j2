@@ -1,0 +1,21 @@
+[Unit]
+Description=Kopia server
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile={{ kopia_opt_dir }}/.env
+ExecStart=/usr/bin/kopia server start \
+  --config-file={{ kopia_config_dir }}/repository.config \
+  --address=0.0.0.0:{{ kopia_internal_port }} \
+  --tls-cert-file={{ kopia_config_dir }}/server.cert \
+  --tls-key-file={{ kopia_config_dir }}/server.key \
+  --server-username={{ kopia_server_admin_user }} \
+  --control-api \
+  --server-control-username=control
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

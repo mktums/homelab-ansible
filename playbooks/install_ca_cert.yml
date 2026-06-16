@@ -1,9 +1,0 @@
----
-- name: Install step-cli on all servers
-  hosts: servers
-  become: true
-  tags: [step_cli]
-  vars_files:
-    - ../vault/secrets.yml
-  roles:
-    - role: step_cli

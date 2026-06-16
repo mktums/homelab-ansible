@@ -1,0 +1,27 @@
+---
+# Kopia agent — deploys base infrastructure, then iterates over backup_sources from inventory
+
+- name: Deploy Kopia agent base (install binary, systemd templates)
+  ansible.builtin.include_tasks: deploy.yml
+  when: backup_sources | length > 0
+
+- name: Cache Kopia server user list (query once, not per-source)
+  ansible.builtin.shell: >-
+    /usr/bin/kopia server users list
+    --config-file={{ kopia_config_dir }}/repository.config
+  delegate_to: "{{ kopia_server_host }}"
+  environment:
+    KOPIA_PASSWORD: "{{ kopia_repo_password }}"
+  register: kopia_users_list
+  changed_when: false
+  no_log: true
+  when: backup_sources | length > 0
+
+- name: Register all backup sources for this host
+  loop: "{{ backup_sources | dict2items }}"
+  loop_control:
+    loop_var: source_def
+    label: "kopia-backup@{{ source_def.key }}"
+  vars:
+    _kopia_existing_users: "{{ hostvars[kopia_server_host].kopia_users_list.stdout | default('') }}"
+  ansible.builtin.include_tasks: register_source.yml

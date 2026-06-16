@@ -1,0 +1,6 @@
+[Unit]
+Description=Kopia repository sync to external ({{ kopia_sync_external_repo_path }})
+
+[Service]
+Type=oneshot
+ExecStart={{ kopia_opt_dir }}/kopia-sync-external/kopia-sync-external.sh

@@ -1,0 +1,11 @@
+[Unit]
+Description=Kopia repository full verification (monthly 100%)
+
+[Service]
+Type=oneshot
+Environment=KOPIA_PASSWORD={{ kopia_repo_password }}
+ExecStart=/usr/bin/kopia snapshot verify \
+  --config-file={{ kopia_config_dir }}/repository.config \
+  --verify-files-percent=100 \
+  --file-parallelism=4 \
+  --parallel=4

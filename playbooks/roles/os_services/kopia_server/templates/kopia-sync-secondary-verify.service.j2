@@ -1,0 +1,12 @@
+[Unit]
+Description=Kopia secondary repository verification (daily 5% sample)
+
+[Service]
+Type=oneshot
+Environment=KOPIA_PASSWORD={{ kopia_repo_password }}
+ExecStartPre=-/usr/bin/test -f {{ kopia_config_dir }}/sync/secondary.config
+ExecStart=/usr/bin/kopia snapshot verify \
+  --config-file={{ kopia_config_dir }}/sync/secondary.config \
+  --verify-files-percent=5 \
+  --file-parallelism=4 \
+  --parallel=4

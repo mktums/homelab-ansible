@@ -1,11 +1,11 @@
 # Hardware Report: lab2
 
-Generated: 2026-06-01 02:44:02 UTC
+Generated: 2026-06-15 19:38:14 UTC
 
 ## System & CPU
 
-- **OS:** Ubuntu 24.04.4 LTS
-- **Kernel:** 6.8.0-106-generic
+- **OS:** Debian GNU/Linux 13 (trixie)
+- **Kernel:** 6.12.90+deb13.1-amd64
 - **Motherboard:** ASUSTeK COMPUTER INC. (B150M-A)
 - **CPU:** Intel(R) Pentium(R) CPU G4400 @ 3.30GHz
 - **Sockets:** 1
@@ -23,13 +23,13 @@ Generated: 2026-06-01 02:44:02 UTC
 
 | Name | Type | Size | Priority | Compression |
 |:---|:---|:---|:---|:---|
-| /swap.img | file | 4.0 GB | -2 | N/A |
+| /swapfile | file | 7.6 GB | -2 | N/A |
 
 ### Zswap
 
 | Enabled | Compressor | Capacity (max pool) |
 |:---|:---|:---|
-| Y | zstd | 1.91 GB |
+| Y | lzo | 1.91 GB |
 
 ## GPU
 
@@ -41,8 +41,8 @@ Generated: 2026-06-01 02:44:02 UTC
 
 | Device | Type | Model | Size | Used | Health | Notes |
 |:---|:---|:---|:---|:---|:---|:---|
-| /dev/sda | HDD | WDC WD20EZRZ-00Z | 1.82 TB | 1.45 TB (82%) | PASSED | - |
-| /dev/sdb | SSD | Samsung SSD 850 | 232.89 GB | 15.92 GB (8%) | PASSED | Wear: 7% |
+| /dev/sda | HDD | WDC WD30EFRX-68AX9N0 | 2.73 TB | 1.64 TB (62%) | PASSED | Offline_Uncorrectable 2 |
+| /dev/sdb | SSD | Samsung SSD 850 EVO 250GB | 232.89 GB | 11.18 GB (6%) | PASSED | Wear: 7% |
 
 ### RAID Arrays
 
@@ -53,4 +53,4 @@ Generated: 2026-06-01 02:44:02 UTC
 
 | Interface | Model | Link Speed | IP Address | Status |
 |:---|:---|:---|:---|:---|
-| enp3s0 | ASUSTeK Computer Inc. Onboard RTL8111H Ethernet | 1000Mb/s | 10.10.10.11/24 | UP |
+| enp3s0 | ASUSTeK Computer Inc. Onboard RTL8111H Ethernet | - | 10.10.10.11/24 | UP |

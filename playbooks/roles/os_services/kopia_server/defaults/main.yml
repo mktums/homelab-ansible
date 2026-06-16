@@ -1,0 +1,31 @@
+# Kopia server defaults (native binary)
+
+# Version (pinned, update manually)
+kopia_version: "0.23.0"
+
+# Paths
+kopia_opt_dir: "{{ ansible_opt_base }}/kopia_server"
+kopia_config_dir: "{{ srv_base }}/kopia"
+kopia_cache_dir: "{{ srv_base }}/kopia/cache"
+kopia_logs_dir: "{{ srv_base }}/kopia/logs"
+kopia_repo_path: "/mnt/backup/kopia"
+
+# Network (direct port, no Traefik)
+kopia_internal_port: 51514
+
+# CNAME subdomain (without .{{ lan_domain }})
+kopia_cname: "kopia"
+
+# Maintenance owner user@hostname
+kopia_maintenance_owner: "root@kopia"
+
+# ── Sync-to (secondary repository for 3-2-1) ───────────────────────────
+kopia_sync_secondary_enabled: false
+kopia_sync_secondary_repo_path: "/mnt/green/kopia-repo-sync"
+kopia_sync_secondary_timer_on_calendar: "*-*-* 04:30:00"
+
+# ── Sync-to (external repository for 3-2-1, USB rotation) ──────────────
+kopia_sync_external_enabled: false
+kopia_sync_external_serial: "S6NSNS0W103280N"
+kopia_sync_external_mount_point: "/mnt/t7"
+kopia_sync_external_repo_path: "{{ kopia_sync_external_mount_point }}/kopia-repo-sync"

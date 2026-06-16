@@ -1,0 +1,7 @@
+---
+# This role provides shared tasks for homelab services.
+# Use via include_role with tasks_from, e.g.:
+#   include_role:
+#     name: common_tasks
+#     tasks_from: register_cname
+# Do NOT use include_role: common_tasks without tasks_from — it has no default tasks.

@@ -1,0 +1,2 @@
+# External drive (serial {{ kopia_sync_external_serial }}) — trigger Kopia sync-to external on plug-in
+SUBSYSTEM=="block", ACTION=="add", ENV{ID_USB_SERIAL_SHORT}=="{{ kopia_sync_external_serial }}", SYMLINK+="t7_shield%n", RUN+="/usr/bin/systemctl start kopia-sync-external.service"

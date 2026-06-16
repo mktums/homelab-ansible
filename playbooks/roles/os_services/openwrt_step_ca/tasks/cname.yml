@@ -1,0 +1,8 @@
+---
+- name: Register step-ca CNAME
+  ansible.builtin.include_role:
+    name: common_tasks
+    tasks_from: register_cname
+  vars:
+    cname_name: "{{ step_ca_cname }}.{{ lan_domain }}"
+    cname_target: "openwrt.{{ lan_domain }}"

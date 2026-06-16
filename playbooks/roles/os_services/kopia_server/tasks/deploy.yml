@@ -1,0 +1,192 @@
+---
+# deploy.yml — native Kopia server setup (lab1 only)
+
+# ── Install Kopia binary ────────────────────────────────────────────────
+
+- name: Check installed Kopia version
+  ansible.builtin.command: dpkg-query -W -f='${Version}' kopia
+  register: kopia_installed_version
+  changed_when: false
+  failed_when: false
+
+- name: Download Kopia .deb from GitHub releases
+  ansible.builtin.get_url:
+    url: "https://github.com/kopia/kopia/releases/download/v{{ kopia_version }}/kopia_{{ kopia_version }}_linux_amd64.deb"
+    dest: "/tmp/kopia_{{ kopia_version }}_amd64.deb"
+    mode: "0644"
+  when: kopia_installed_version.stdout != kopia_version
+
+- name: Install Kopia .deb package
+  ansible.builtin.apt:
+    deb: "/tmp/kopia_{{ kopia_version }}_amd64.deb"
+    state: present
+  when: kopia_installed_version.stdout != kopia_version
+
+- name: Remove downloaded .deb file
+  ansible.builtin.file:
+    path: "/tmp/kopia_{{ kopia_version }}_amd64.deb"
+    state: absent
+  when: kopia_installed_version.stdout != kopia_version
+
+# ── Create directories ──────────────────────────────────────────────────
+
+- name: Create Kopia directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "root"
+    group: "root"
+    mode: "{{ item.mode }}"
+  loop:
+    - { path: "{{ kopia_repo_path }}", mode: "0700" }
+    - { path: "{{ kopia_config_dir }}", mode: "0700" }
+    - { path: "{{ kopia_cache_dir }}", mode: "0700" }
+    - { path: "{{ kopia_logs_dir }}", mode: "0700" }
+    - { path: "{{ kopia_opt_dir }}", mode: "0755" }
+
+# ── Initialize repository (first run only) ──────────────────────────────
+
+- name: Check if repository config exists
+  ansible.builtin.stat:
+    path: "{{ kopia_config_dir }}/repository.config"
+  register: kopia_config_stat
+
+- name: Initialize Kopia repository (first run only)
+  ansible.builtin.command: >-
+    /usr/bin/kopia repository create filesystem
+    --config-file={{ kopia_config_dir }}/repository.config
+    --path {{ kopia_repo_path }}
+  environment:
+    KOPIA_PASSWORD: "{{ kopia_repo_password }}"
+  when: not kopia_config_stat.stat.exists
+  # no_log: true
+
+# ── TLS certificate (step-ca, offline issuance) ─────────────────────────
+
+- name: Check if TLS certificate exists and is valid
+  ansible.builtin.command: openssl x509 -in {{ kopia_config_dir }}/server.cert -checkend 2592000 -noout
+  register: kopia_tls_cert_check
+  changed_when: false
+  failed_when: false
+
+- name: Generate ACME token for kopia.lan (offline)
+  ansible.builtin.command: >-
+    step-cli ca token {{ kopia_cname }}.{{ lan_domain }}
+    --provisioner admin@{{ step_ca_cname }}.{{ lan_domain }}
+    --offline
+    --key /root/.step/secrets/jwk_priv.json
+  register: kopia_acme_token
+  changed_when: false
+  no_log: true
+  when: kopia_tls_cert_check.rc != 0
+
+- name: Issue TLS certificate for kopia.lan
+  ansible.builtin.command: >-
+    step-cli ca certificate --token {{ kopia_acme_token.stdout }}
+    --not-after 8760h
+    {{ kopia_cname }}.{{ lan_domain }}
+    {{ kopia_config_dir }}/server.cert
+    {{ kopia_config_dir }}/server.key
+  when: kopia_tls_cert_check.rc != 0
+  no_log: true
+
+- name: Set TLS certificate permissions
+  ansible.builtin.file:
+    path: "{{ item }}"
+    mode: "0600"
+    owner: "root"
+    group: "root"
+  loop:
+    - "{{ kopia_config_dir }}/server.cert"
+    - "{{ kopia_config_dir }}/server.key"
+
+# ── Environment file (secrets, not visible in ps) ───────────────────────
+
+- name: Deploy Kopia server environment file
+  ansible.builtin.template:
+    src: .env.j2
+    dest: "{{ kopia_opt_dir }}/.env"
+    mode: "0600"
+    owner: "root"
+    group: "root"
+  notify: Restart Kopia server
+
+# ── Systemd service ─────────────────────────────────────────────────────
+
+- name: Deploy Kopia server systemd unit
+  ansible.builtin.template:
+    src: kopia-server.service.j2
+    dest: /etc/systemd/system/kopia-server.service
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart Kopia server
+
+- name: Start and enable Kopia server
+  ansible.builtin.systemd:
+    name: kopia-server
+    state: started
+    enabled: yes
+
+- name: Wait for Kopia server to be ready
+  ansible.builtin.wait_for:
+    port: "{{ kopia_internal_port }}"
+    host: "127.0.0.1"
+    delay: 3
+    timeout: 30
+
+# ── Post-deploy configuration ───────────────────────────────────────────
+
+- name: Set maintenance ownership (first agent identity)
+  ansible.builtin.shell: >-
+    /usr/bin/kopia maintenance set
+    --config-file={{ kopia_config_dir }}/repository.config
+    --owner={{ kopia_maintenance_owner }}
+  environment:
+    KOPIA_PASSWORD: "{{ kopia_repo_password }}"
+  changed_when: false
+  no_log: true
+
+- name: Set global repository policy (compression, parallelism, cache dirs, retention)
+  ansible.builtin.shell: >-
+    /usr/bin/kopia policy set --global
+    --config-file={{ kopia_config_dir }}/repository.config
+    --compression=zstd
+    --add-never-compress=mp4,mkv,avi,iso,zip,gz,xz,tar.gz,7z,rar
+    --max-parallel-file-reads={{ kopia_global_parallelism.max_file_reads }}
+    --max-parallel-snapshots={{ kopia_global_parallelism.max_snapshots }}
+    --ignore-cache-dirs=true
+    --keep-latest={{ kopia_global_retention.keep_latest }}
+    --keep-hourly={{ kopia_global_retention.keep_hourly }}
+    --keep-daily={{ kopia_global_retention.keep_daily }}
+    --keep-weekly={{ kopia_global_retention.keep_weekly }}
+    --keep-monthly={{ kopia_global_retention.keep_monthly }}
+    --keep-annual={{ kopia_global_retention.keep_annual }}
+    --ignore-identical-snapshots=true
+  environment:
+    KOPIA_PASSWORD: "{{ kopia_repo_password }}"
+  changed_when: false
+  no_log: true
+
+# ── Verification timers ─────────────────────────────────────────────────
+
+- name: Deploy verification timers and services
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - { src: kopia-verify.timer.j2, dest: /etc/systemd/system/kopia-verify.timer, mode: '0644' }
+    - { src: kopia-verify.service.j2, dest: /etc/systemd/system/kopia-verify.service, mode: '0644' }
+    - { src: kopia-verify-full.timer.j2, dest: /etc/systemd/system/kopia-verify-full.timer, mode: '0644' }
+    - { src: kopia-verify-full.service.j2, dest: /etc/systemd/system/kopia-verify-full.service, mode: '0644' }
+  notify: Reload systemd
+
+- name: Start and enable verification timers
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  loop:
+    - kopia-verify.timer
+    - kopia-verify-full.timer
