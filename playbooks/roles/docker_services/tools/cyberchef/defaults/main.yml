@@ -8,4 +8,4 @@ cyberchef_image_tag: "latest"
 cyberchef_opt_dir: "{{ ansible_opt_base }}/cyberchef"
 
 # CNAME subdomain (without .{{ lan_domain }})
-cyberchef_cname: "chef"
+cyberchef_cname: "chef.tools"

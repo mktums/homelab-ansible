@@ -1,0 +1,14 @@
+---
+services:
+  it_tools:
+    image: "{{ it_tools_image_name }}:{{ it_tools_image_tag }}"
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.it_tools.rule: "Host(`{{ it_tools_cname }}.{{ lan_domain }}`)"
+      traefik.http.routers.it_tools.entrypoints: "websecure"
+      traefik.http.routers.it_tools.tls: "true"
+      traefik.http.routers.it_tools.tls.certresolver: "step-ca"
+      traefik.http.services.it_tools.loadbalancer.server.port: "8080"

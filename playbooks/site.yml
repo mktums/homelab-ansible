@@ -133,6 +133,10 @@
       tags: [cyberchef, docker_services_tools, docker_services]
       when: inventory_hostname in groups.get('cyberchef_hosts', [])
 
+    - role: docker_services/tools/it_tools
+      tags: [it_tools, docker_services_tools, docker_services]
+      when: inventory_hostname in groups.get('it_tools_hosts', [])
+
     # ── 3d: Apps ───────────────────────────────────────────────────────
     # User-facing applications with data lifecycle
     - role: docker_services/apps/vaultwarden

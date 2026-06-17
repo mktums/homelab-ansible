@@ -68,7 +68,9 @@ Internet
         │   └── beszel.lan
         ├── kopia agent    (native)
         ├── cyberchef      (via Traefik)
-        │   └── chef.lan
+        │   └── chef.tools.lan
+        ├── it-tools       (via Traefik)
+        │   └── it.tools.lan
         ├── qbittorrent    (via Traefik)
         │   └── qbit.lab2.lan
         └── inpx-web       (via Traefik)
@@ -92,7 +94,8 @@ DNS (*.lan resolved by dnsmasq):
   db.lan              → lab1.lan     (CNAME)
   links.lan           → lab1.lan     (CNAME)
   beszel.lan          → lab2.lan     (CNAME)
-  chef.lan            → lab2.lan     (CNAME)
+  chef.tools.lan      → lab2.lan     (CNAME)
+  it.tools.lan        → lab2.lan     (CNAME)
 ```
 
 ---
