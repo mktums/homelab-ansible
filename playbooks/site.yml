@@ -10,10 +10,10 @@
 #   ansible-playbook site.yml                                     # full deploy
 #   ansible-playbook site.yml --tags layer_barebone               # barebone only
 #   ansible-playbook site.yml --tags layer_os_services            # OS services only
-#   ansible-playbook site.yml --tags docker_services_infra        # infra services only
-#   ansible-playbook site.yml --tags docker_services_tools        # tools only
-#   ansible-playbook site.yml --tags docker_services_shared       # shared deps only
-#   ansible-playbook site.yml --tags docker_services_apps         # apps only
+#   ansible-playbook site.yml --tags layer_docker_infra        # infra services only
+#   ansible-playbook site.yml --tags layer_docker_tools        # tools only
+#   ansible-playbook site.yml --tags layer_docker_shared       # shared deps only
+#   ansible-playbook site.yml --tags layer_docker_apps         # apps only
 #   ansible-playbook site.yml --tags traefik                      # single service
 #   ansible-playbook site.yml --tags router                       # router only
 #   ansible-playbook site.yml --tags servers                      # servers only
@@ -98,59 +98,59 @@
     # ── 3a: Shared dependencies ────────────────────────────────────────
     # Databases, caches — exist to support other services
     - role: docker_services/shared/meilisearch
-      tags: [meilisearch, docker_services_shared, docker_services]
+      tags: [meilisearch, layer_docker_shared, docker_services]
       when: inventory_hostname in groups.get('meilisearch_hosts', [])
 
     - role: docker_services/shared/postgres
-      tags: [postgres, docker_services_shared, docker_services]
+      tags: [postgres, layer_docker_shared, docker_services]
       when: inventory_hostname in groups.get('postgres_hosts', [])
 
     # ── 3b: Infra services ─────────────────────────────────────────────
     # Platform services: proxy, monitoring, backups, Docker management
     - role: docker_services/infra/traefik
-      tags: [traefik, docker_services_infra, docker_services]
+      tags: [traefik, layer_docker_infra, docker_services]
       when: inventory_hostname in groups.get('traefik_hosts', [])
 
     - role: docker_services/infra/beszel_hub
-      tags: [beszel_hub, docker_services_infra, docker_services]
-      when: inventory_hostname in groups.get('beszel_hosts', [])
+      tags: [beszel_hub, layer_docker_infra, docker_services]
+      when: inventory_hostname in groups.get('beszel_hub_hosts', [])
 
     - role: docker_services/infra/beszel_agent
-      tags: [beszel_agent, docker_services_infra, docker_services]
+      tags: [beszel_agent, layer_docker_infra, docker_services]
       when: inventory_hostname in groups.get('beszel_agent_hosts', [])
 
     - role: docker_services/infra/dockhand
-      tags: [dockhand, docker_services_infra, docker_services]
+      tags: [dockhand, layer_docker_infra, docker_services]
       when: inventory_hostname in groups.get('dockhand_hosts', [])
 
     - role: docker_services/infra/dockhand_agent
-      tags: [dockhand_agent, docker_services_infra, docker_services]
+      tags: [dockhand_agent, layer_docker_infra, docker_services]
       when: inventory_hostname in groups.get('dockhand_agent_hosts', [])
 
     # ── 3c: Tools ──────────────────────────────────────────────────────
     # Stateless utilities (browser-based, no data lifecycle)
     - role: docker_services/tools/cyberchef
-      tags: [cyberchef, docker_services_tools, docker_services]
+      tags: [cyberchef, layer_docker_tools, docker_services]
       when: inventory_hostname in groups.get('cyberchef_hosts', [])
 
     - role: docker_services/tools/it_tools
-      tags: [it_tools, docker_services_tools, docker_services]
+      tags: [it_tools, layer_docker_tools, docker_services]
       when: inventory_hostname in groups.get('it_tools_hosts', [])
 
     # ── 3d: Apps ───────────────────────────────────────────────────────
     # User-facing applications with data lifecycle
     - role: docker_services/apps/vaultwarden
-      tags: [vaultwarden, docker_services_apps, docker_services]
+      tags: [vaultwarden, layer_docker_apps, docker_services]
       when: inventory_hostname in groups.get('vaultwarden_hosts', [])
 
     - role: docker_services/apps/qbittorrent
-      tags: [qbittorrent, docker_services_apps, docker_services]
+      tags: [qbittorrent, layer_docker_apps, docker_services]
       when: inventory_hostname in groups.get('qbittorrent_hosts', [])
 
     - role: docker_services/apps/inpx_web
-      tags: [inpx_web, docker_services_apps, docker_services]
+      tags: [inpx_web, layer_docker_apps, docker_services]
       when: inventory_hostname in groups.get('inpx_web_hosts', [])
 
     - role: docker_services/apps/linkwarden
-      tags: [linkwarden, docker_services_apps, docker_services]
+      tags: [linkwarden, layer_docker_apps, docker_services]
       when: inventory_hostname in groups.get('linkwarden_hosts', [])

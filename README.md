@@ -213,10 +213,10 @@ ansible-playbook playbooks/site.yml
 # By layer
 ansible-playbook playbooks/site.yml --tags layer_barebone
 ansible-playbook playbooks/site.yml --tags layer_os_services
-ansible-playbook playbooks/site.yml --tags docker_services_infra
-ansible-playbook playbooks/site.yml --tags docker_services_tools
-ansible-playbook playbooks/site.yml --tags docker_services_shared
-ansible-playbook playbooks/site.yml --tags docker_services_apps
+ansible-playbook playbooks/site.yml --tags layer_docker_infra
+ansible-playbook playbooks/site.yml --tags layer_docker_tools
+ansible-playbook playbooks/site.yml --tags layer_docker_shared
+ansible-playbook playbooks/site.yml --tags layer_docker_apps
 
 # Single service
 ansible-playbook playbooks/site.yml --tags traefik

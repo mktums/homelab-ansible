@@ -9,7 +9,7 @@
     group: root
     mode: "0755"
   loop:
-    - "{{ traefik_config_dir }}"
+    - "{{ traefik_opt_dir }}"
     - "{{ traefik_data_dir }}/acme"
 
 - name: Flush handlers to ensure CA trust store is updated before Traefik restarts
@@ -22,7 +22,7 @@
 - name: Deploy Traefik dynamic config only (for routers/middlewares)
   ansible.builtin.template:
     src: traefik-dynamic.yml.j2
-    dest: "{{ traefik_config_dir }}/traefik-dynamic.yml"
+    dest: "{{ traefik_opt_dir }}/traefik-dynamic.yml"
     mode: "0644"
   notify: Restart Traefik
 
@@ -39,13 +39,13 @@
 - name: Render compose file
   ansible.builtin.template:
     src: docker-compose.yml.j2
-    dest: "{{ traefik_config_dir }}/docker-compose.yml"
+    dest: "{{ traefik_opt_dir }}/docker-compose.yml"
     mode: "0644"
   notify: Restart Traefik
 
 - name: Deploy Traefik stack
   community.docker.docker_compose_v2:
-    project_src: "{{ traefik_config_dir }}"
+    project_src: "{{ traefik_opt_dir }}"
     files:
       - docker-compose.yml
     state: present

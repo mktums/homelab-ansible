@@ -6,7 +6,7 @@ beszel_image_tag: "latest"
 
 # Paths
 beszel_hub_opt_dir: "{{ ansible_opt_base }}/beszel"
-beszel_data_dir: "{{ docker_data_base }}/beszel"
+beszel_hub_data_dir: "{{ docker_data_base }}/beszel"
 
 # Network
 beszel_port: 8090

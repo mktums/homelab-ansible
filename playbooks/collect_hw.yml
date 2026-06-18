@@ -6,7 +6,7 @@
     - ../vault/secrets.yml
   vars:
     local_reports_dir: "{{ playbook_dir }}/../docs/hw_reports"
-    script_src: "{{ playbook_dir }}/../scripts/hw_report.sh"
+    script_src: "{{ playbook_dir }}/../scripts/report_hw.sh"
 
   pre_tasks:
     - name: Ensure local reports directory exists

@@ -1,5 +1,5 @@
 ---
 - name: Restart inpx-web
   community.docker.docker_compose_v2:
-    project_src: "{{ inpx_web_config_dir }}"
+    project_src: "{{ inpx_web_opt_dir }}"
     state: present

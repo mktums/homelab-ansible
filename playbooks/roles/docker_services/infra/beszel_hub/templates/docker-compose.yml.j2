@@ -6,7 +6,7 @@ services:
     ports:
       - "{{ beszel_port }}:8090"
     volumes:
-      - "{{ beszel_data_dir }}/data:/beszel_data"
+      - "{{ beszel_hub_data_dir }}/data:/beszel_data"
       - /etc/localtime:/etc/localtime:ro
     environment:
       APP_URL: "https://{{ beszel_hub_cname }}.{{ lan_domain }}"

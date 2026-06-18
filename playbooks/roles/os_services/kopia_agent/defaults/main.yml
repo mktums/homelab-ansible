@@ -1,8 +1,5 @@
 # Kopia agent defaults (host-level, deployed once per host)
 
-# Version (pinned, update manually)
-kopia_version: "0.23.0"
-
 # Server connection
 kopia_server_host: "{{ groups['kopia_server_hosts'][0] }}"
 kopia_server_url: "https://{{ kopia_cname }}.{{ lan_domain }}:{{ kopia_internal_port }}"

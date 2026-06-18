@@ -11,11 +11,11 @@
 | **Hostname** | **lab1** | **lab2** | **personal** |
 |---|---|---|---|
 | **Codename** | Furnace | Eternal | Starship |
-| **CPU** | Core i7 7820X | Pentium G4400 | Core i9 13900KF |
-| **RAM** | 1x 16Gb DDR4 2133<br>Corsair Vengeance LPX `CMK32GX4M2A2666C` | 1x 8Gb DDR4 2133 | 2x 32Gb DDR5 6000 |
+| **CPU** | Intel Core i7 7820X | Intel Pentium G4400 | Intel Core i9 13900KF |
+| **RAM** | 2x 16Gb DDR4 2133<br>Corsair Vengeance LPX<br>`CMK32GX4M2A2666C` | 1x 8Gb DDR4 2133<br>Kingston HyperX Fury<br>`KHX2133C13D4/8GX` | 2x 32Gb DDR5 6000<br>G.Skill Trident Z5 Neo<br>`F5-6000J3040G32GX2-TZ5N` |
 | **MB** | ASRock X299 Taichi XE | ASUS B150M-A | MSI MPG Z790 CARBON WIFI |
 | **GPU** | Palit GeForce RTX 2080 SUPER JETSTREAM 8GB<br>*(120mm fans instead of factory ones)*| --- | MSI GeForce RTX 4090 SUPRIM X 24G |
-| **Storage** | Samsung 960 PRO 512GB<br>WD Green 1TB<br>3x WD Red 3TB| Samsung SSD 850 EVO 250GB<br>WD Blue 2TB | WD Black SN850 1Tb<br>KingSpec NX-1TB 1Tb |
+| **Storage** | Samsung 960 PRO 512GB<br>WD Green 1TB<br>WD Blue 2TB<br>2x WD Red 3TB| Samsung SSD 850 EVO 250GB<br>1x WD Red 3TB | WD Black SN850 1Tb<br>KingSpec NX-1TB 1Tb |
 | **PSU** | Corsair HX750i | 3Cott 500ATX | MSI MPG A1000G |
 | **Chassis** | Thermaltake Core V71 Tempered Glass Edition | Montech AIR 1000 Lite | Lian Li Lancool 216 |
 

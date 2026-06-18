@@ -2,11 +2,11 @@
 - name: Render compose file
   ansible.builtin.template:
     src: docker-compose.yml.j2
-    dest: "{{ inpx_web_config_dir }}/docker-compose.yml"
+    dest: "{{ inpx_web_opt_dir }}/docker-compose.yml"
     mode: "0644"
 
 - name: Deploy inpx-web stack
   community.docker.docker_compose_v2:
-    project_src: "{{ inpx_web_config_dir }}"
+    project_src: "{{ inpx_web_opt_dir }}"
     state: present
   notify: Restart inpx-web

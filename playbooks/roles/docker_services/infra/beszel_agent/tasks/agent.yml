@@ -5,14 +5,15 @@
     state: directory
     mode: "0755"
   loop:
-    - "{{ beszel_data_dir }}"
+    - "{{ beszel_agent_data_dir }}"
     - "{{ beszel_agent_opt_dir }}"
 
 - name: Set agent build facts
   ansible.builtin.set_fact:
-    beszel_agent_image: >-
-      {{ beszel_agent_image_nvidia_name if nvidia_gpu | default(false) else beszel_agent_image_name }}:{{
-         beszel_agent_image_nvidia_tag if nvidia_gpu | default(false) else beszel_agent_image_tag }}
+    beszel_agent_resolved_image_name: >-
+      {{ beszel_agent_image_nvidia_name if nvidia_gpu | default(false) else beszel_agent_image_name }}
+    beszel_agent_resolved_image_tag: >-
+      {{ beszel_agent_image_nvidia_tag if nvidia_gpu | default(false) else beszel_agent_image_tag }}
     beszel_agent_devices: >-
       {{ beszel_smart_devices | default([]) | reject('equalto', '') | list }}
     beszel_agent_cap_add: >-

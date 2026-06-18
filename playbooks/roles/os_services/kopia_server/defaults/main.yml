@@ -1,8 +1,5 @@
 # Kopia server defaults (native binary)
 
-# Version (pinned, update manually)
-kopia_version: "0.23.0"
-
 # Paths
 kopia_opt_dir: "{{ ansible_opt_base }}/kopia_server"
 kopia_config_dir: "{{ srv_base }}/kopia"

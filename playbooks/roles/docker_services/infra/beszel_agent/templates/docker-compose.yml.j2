@@ -1,14 +1,14 @@
 ---
 services:
   beszel-agent:
-    image: "{{ beszel_agent_image }}"
+    image: "{{ beszel_agent_resolved_image_name }}:{{ beszel_agent_resolved_image_tag }}"
     hostname: "{{ inventory_hostname }}"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "/agent", "health"]
       interval: 120s
     volumes:
-      - "{{ beszel_data_dir }}:/var/lib/beszel-agent"
+      - "{{ beszel_agent_data_dir }}:/var/lib/beszel-agent"
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /etc/localtime:/etc/localtime:ro
 {% for vol in beszel_extra_volumes | default([]) %}

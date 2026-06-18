@@ -21,7 +21,7 @@ services:
       --providers.file.watch=true
       --certificatesresolvers.step-ca.acme.email={{ traefik_acme_email }}
       --certificatesresolvers.step-ca.acme.storage=/acme/acme.json
-      --certificatesresolvers.step-ca.acme.caserver=https://step-ca.{{ lan_domain }}:{{ step_ca_port }}/acme/acme/directory
+      --certificatesresolvers.step-ca.acme.caserver=https://{{ step_ca_cname }}.{{ lan_domain }}:{{ step_ca_port }}/acme/acme/directory
       --certificatesresolvers.step-ca.acme.tlschallenge=true
       --ping.entryPoint=web
     healthcheck:
@@ -31,7 +31,7 @@ services:
       retries: 3
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - "{{ traefik_config_dir }}/traefik-dynamic.yml:/traefik-dynamic.yml:ro"
+      - "{{ traefik_opt_dir }}/traefik-dynamic.yml:/traefik-dynamic.yml:ro"
       - "{{ traefik_data_dir }}/acme:/acme"
       - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
       - /etc/localtime:/etc/localtime:ro
