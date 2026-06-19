@@ -1,0 +1,55 @@
+---
+- name: Create arr-stack directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ arr_stack_opt_dir }}"
+    - "{{ arr_stack_data_dir }}/radarr"
+    - "{{ arr_stack_data_dir }}/sonarr"
+    - "{{ arr_stack_data_dir }}/prowlarr"
+    - "{{ arr_stack_data_dir }}/lidarr"
+    - "{{ arr_stack_data_dir }}/bazarr"
+    - "{{ arr_stack_data_dir }}/seerr"
+
+- name: Set Seerr data directory ownership
+  ansible.builtin.file:
+    path: "{{ arr_stack_data_dir }}/seerr"
+    state: directory
+    mode: "0755"
+    owner: "{{ container_puid }}"
+    group: "{{ container_pgid }}"
+
+- name: Create Seerr PostgreSQL database
+  ansible.builtin.include_role:
+    name: common_tasks
+    tasks_from: create_pg_database
+  vars:
+    pg_db_name: "seerr"
+    pg_db_user: "seerr"
+    pg_db_password: "{{ vault_seerr_db_password }}"
+
+- name: Write Seerr .env file
+  ansible.builtin.copy:
+    content: |
+      DATABASE_URL=postgresql://seerr:{{ vault_seerr_db_password }}@{{ postgres_cname }}.{{ lan_domain }}:{{ postgres_port }}/seerr
+      LOG_LEVEL=log
+    dest: "{{ arr_stack_opt_dir }}/.env"
+    mode: "0600"
+    backup: true
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ arr_stack_opt_dir }}/docker-compose.yml"
+    mode: "0644"
+
+- name: Deploy arr-stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ arr_stack_opt_dir }}"
+    files:
+      - docker-compose.yml
+    state: present
+    pull: missing
+  notify: Restart arr-stack

@@ -1,0 +1,169 @@
+services:
+  radarr:
+    image: "{{ arr_radarr_image }}:{{ arr_radarr_tag }}"
+    container_name: radarr
+    restart: unless-stopped
+    environment:
+      PUID: "{{ container_puid | string }}"
+      PGID: "{{ container_pgid | string }}"
+      TZ: "{{ timezone }}"
+    volumes:
+      - "{{ arr_stack_data_dir }}/radarr:/config"
+      - "/mnt/data:/data"
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+    ports:
+      - "{{ arr_radarr_port }}:7878"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.radarr.rule: "Host(`{{ arr_radarr_cname }}.{{ lan_domain }}`)"
+      traefik.http.routers.radarr.entrypoints: "websecure"
+      traefik.http.routers.radarr.tls: "true"
+      traefik.http.routers.radarr.tls.certresolver: "step-ca"
+      traefik.http.services.radarr.loadbalancer.server.port: "7878"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null --timeout=3 --no-check-certificate http://localhost:7878/ || exit 1"]
+      start_period: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  sonarr:
+    image: "{{ arr_sonarr_image }}:{{ arr_sonarr_tag }}"
+    container_name: sonarr
+    restart: unless-stopped
+    environment:
+      PUID: "{{ container_puid | string }}"
+      PGID: "{{ container_pgid | string }}"
+      TZ: "{{ timezone }}"
+    volumes:
+      - "{{ arr_stack_data_dir }}/sonarr:/config"
+      - "/mnt/data:/data"
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+    ports:
+      - "{{ arr_sonarr_port }}:8989"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.sonarr.rule: "Host(`{{ arr_sonarr_cname }}.{{ lan_domain }}`)"
+      traefik.http.routers.sonarr.entrypoints: "websecure"
+      traefik.http.routers.sonarr.tls: "true"
+      traefik.http.routers.sonarr.tls.certresolver: "step-ca"
+      traefik.http.services.sonarr.loadbalancer.server.port: "8989"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null --timeout=3 --no-check-certificate http://localhost:8989/ || exit 1"]
+      start_period: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  prowlarr:
+    image: "{{ arr_prowlarr_image }}:{{ arr_prowlarr_tag }}"
+    container_name: prowlarr
+    restart: unless-stopped
+    environment:
+      PUID: "{{ container_puid | string }}"
+      PGID: "{{ container_pgid | string }}"
+      TZ: "{{ timezone }}"
+    volumes:
+      - "{{ arr_stack_data_dir }}/prowlarr:/config"
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+    ports:
+      - "{{ arr_prowlarr_port }}:9696"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.prowlarr.rule: "Host(`{{ arr_prowlarr_cname }}.{{ lan_domain }}`)"
+      traefik.http.routers.prowlarr.entrypoints: "websecure"
+      traefik.http.routers.prowlarr.tls: "true"
+      traefik.http.routers.prowlarr.tls.certresolver: "step-ca"
+      traefik.http.services.prowlarr.loadbalancer.server.port: "9696"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null --timeout=3 --no-check-certificate http://localhost:9696/ || exit 1"]
+      start_period: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  lidarr:
+    image: "{{ arr_lidarr_image }}:{{ arr_lidarr_tag }}"
+    container_name: lidarr
+    restart: unless-stopped
+    environment:
+      PUID: "{{ container_puid | string }}"
+      PGID: "{{ container_pgid | string }}"
+      TZ: "{{ timezone }}"
+    volumes:
+      - "{{ arr_stack_data_dir }}/lidarr:/config"
+      - "/mnt/data:/data"
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+    ports:
+      - "{{ arr_lidarr_port }}:8686"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.lidarr.rule: "Host(`{{ arr_lidarr_cname }}.{{ lan_domain }}`)"
+      traefik.http.routers.lidarr.entrypoints: "websecure"
+      traefik.http.routers.lidarr.tls: "true"
+      traefik.http.routers.lidarr.tls.certresolver: "step-ca"
+      traefik.http.services.lidarr.loadbalancer.server.port: "8686"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null --timeout=3 --no-check-certificate http://localhost:8686/ || exit 1"]
+      start_period: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  bazarr:
+    image: "{{ arr_bazarr_image }}:{{ arr_bazarr_tag }}"
+    container_name: bazarr
+    restart: unless-stopped
+    environment:
+      PUID: "{{ container_puid | string }}"
+      PGID: "{{ container_pgid | string }}"
+      TZ: "{{ timezone }}"
+    volumes:
+      - "{{ arr_stack_data_dir }}/bazarr:/config"
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+    ports:
+      - "{{ arr_bazarr_port }}:6767"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.bazarr.rule: "Host(`{{ arr_bazarr_cname }}.{{ lan_domain }}`)"
+      traefik.http.routers.bazarr.entrypoints: "websecure"
+      traefik.http.routers.bazarr.tls: "true"
+      traefik.http.routers.bazarr.tls.certresolver: "step-ca"
+      traefik.http.services.bazarr.loadbalancer.server.port: "6767"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null --timeout=3 --no-check-certificate http://localhost:6767/ || exit 1"]
+      start_period: 30s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  seerr:
+    image: "{{ arr_seerr_image }}:{{ arr_seerr_tag }}"
+    container_name: seerr
+    init: true
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      TZ: "{{ timezone }}"
+    volumes:
+      - "{{ arr_stack_data_dir }}/seerr:/app/config"
+    ports:
+      - "{{ arr_seerr_port }}:5055"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.seerr.rule: "Host(`{{ arr_seerr_cname }}.{{ lan_domain }}`)"
+      traefik.http.routers.seerr.entrypoints: "websecure"
+      traefik.http.routers.seerr.tls: "true"
+      traefik.http.routers.seerr.tls.certresolver: "step-ca"
+      traefik.http.services.seerr.loadbalancer.server.port: "5055"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/settings/public || exit 1"]
+      start_period: 20s
+      timeout: 3s
+      interval: 15s
+      retries: 3

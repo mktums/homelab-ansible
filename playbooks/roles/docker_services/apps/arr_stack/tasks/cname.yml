@@ -1,0 +1,16 @@
+---
+- name: Register arr-stack CNAMEs
+  ansible.builtin.include_role:
+    name: common_tasks
+    tasks_from: register_cname
+  loop:
+    - "{{ arr_radarr_cname }}"
+    - "{{ arr_sonarr_cname }}"
+    - "{{ arr_prowlarr_cname }}"
+    - "{{ arr_lidarr_cname }}"
+    - "{{ arr_bazarr_cname }}"
+    - "{{ arr_seerr_cname }}"
+  loop_control:
+    loop_var: _cname
+  vars:
+    cname_name: "{{ _cname }}.{{ lan_domain }}"

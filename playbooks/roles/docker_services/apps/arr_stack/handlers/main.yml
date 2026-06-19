@@ -1,0 +1,7 @@
+---
+- name: Restart arr-stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ arr_stack_opt_dir }}"
+    files:
+      - docker-compose.yml
+    state: present

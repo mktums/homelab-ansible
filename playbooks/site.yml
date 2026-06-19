@@ -154,3 +154,8 @@
     - role: docker_services/apps/linkwarden
       tags: [linkwarden, layer_docker_apps, docker_services]
       when: inventory_hostname in groups.get('linkwarden_hosts', [])
+
+    # ── Arr-Stack (disabled: indexers blocked by DPI, APIs return 429) ────
+    # - role: docker_services/apps/arr_stack
+    #   tags: [arr_stack, layer_docker_apps, docker_services]
+    #   when: inventory_hostname in groups.get('arr_stack_hosts', [])
