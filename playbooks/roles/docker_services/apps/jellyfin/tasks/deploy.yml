@@ -1,0 +1,30 @@
+---
+- name: Create Jellyfin opt directory
+  ansible.builtin.file:
+    path: "{{ jellyfin_opt_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Create Jellyfin data directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ container_puid }}"
+    group: "{{ container_pgid }}"
+    mode: "0755"
+  loop:
+    - "{{ jellyfin_data_dir }}/config"
+    - "{{ jellyfin_data_dir }}/cache"
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ jellyfin_opt_dir }}/docker-compose.yml"
+    mode: "0644"
+
+- name: Deploy Jellyfin stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ jellyfin_opt_dir }}"
+    state: present
+    pull: missing
+  notify: Restart Jellyfin

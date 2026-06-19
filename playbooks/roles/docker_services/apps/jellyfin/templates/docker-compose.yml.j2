@@ -1,0 +1,33 @@
+---
+services:
+  jellyfin:
+    image: "{{ jellyfin_image_name }}:{{ jellyfin_image_tag }}"
+    user: "{{ container_puid }}:{{ container_pgid }}"
+    restart: unless-stopped
+    environment:
+      TZ: "{{ timezone }}"
+    volumes:
+      - "{{ jellyfin_data_dir }}/config:/config"
+      - "{{ jellyfin_data_dir }}/cache:/cache"
+      - type: bind
+        source: "{{ jellyfin_media_dir }}"
+        target: /media
+        read_only: true
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "{{ jellyfin_dlna_port }}:7359/udp"
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.jellyfin.rule: "Host(`{{ jellyfin_cname }}.{{ lan_domain }}`)"
+      traefik.http.routers.jellyfin.entrypoints: "websecure"
+      traefik.http.routers.jellyfin.tls: "true"
+      traefik.http.routers.jellyfin.tls.certresolver: "step-ca"
+      traefik.http.services.jellyfin.loadbalancer.server.port: "8096"

@@ -1,0 +1,18 @@
+# Jellyfin defaults
+
+# Image
+jellyfin_image_name: "jellyfin/jellyfin"
+jellyfin_image_tag: "latest"
+
+# Paths
+jellyfin_opt_dir: "{{ ansible_opt_base }}/jellyfin"
+jellyfin_data_dir: "{{ docker_data_base }}/jellyfin"
+
+# Media
+jellyfin_media_dir: "/mnt/data/media"
+
+# Network
+jellyfin_dlna_port: 7359
+
+# CNAME subdomain (without .{{ lan_domain }})
+jellyfin_cname: "media"
