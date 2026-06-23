@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+# Immich pre-backup: pg_dumpall into UPLOAD_LOCATION/backups/ for consistent DB snapshot
+# Does NOT redirect KOPIA_SNAPSHOT_PATH — Kopia snapshots the full upload dir (media + dump)
+
+DUMP_DIR="{{ immich_upload_dir }}/backups"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+
+mkdir -p "$DUMP_DIR"
+
+docker exec -t immich_postgres pg_dumpall --username=postgres > "$DUMP_DIR/immich-db-${TIMESTAMP}.sql"
+
+find "$DUMP_DIR" -name "immich-db-*.sql" -type f -printf '%T+ %p\n' | sort | head -n -14 | awk '{print $2}' | xargs -r rm -f

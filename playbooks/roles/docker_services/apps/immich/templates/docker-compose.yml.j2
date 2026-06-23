@@ -1,0 +1,79 @@
+---
+services:
+  immich-server:
+    container_name: immich_server
+    image: "{{ immich_image_name }}:{{ immich_image_tag }}"
+    restart: unless-stopped
+    env_file:
+      - "{{ immich_opt_dir }}/.env"
+    volumes:
+      - "{{ immich_upload_dir }}:/data"
+      - "{{ immich_opt_dir }}/immich.json:{{ immich_config_file }}"
+      - /etc/localtime:/etc/localtime:ro
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.immich.rule: "Host(`{{ immich_cname }}.{{ lan_domain }}`)"
+      traefik.http.routers.immich.entrypoints: "websecure"
+      traefik.http.routers.immich.tls: "true"
+      traefik.http.routers.immich.tls.certresolver: "step-ca"
+      traefik.http.services.immich.loadbalancer.server.port: "2283"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities:
+                - gpu
+                - compute
+                - video
+    depends_on:
+      - redis
+      - database
+    healthcheck:
+      disable: false
+
+  immich-machine-learning:
+    container_name: immich_machine_learning
+    image: "{{ immich_ml_image_name }}:{{ immich_ml_image_tag }}"
+    restart: unless-stopped
+    env_file:
+      - "{{ immich_opt_dir }}/.env"
+    volumes:
+      - model-cache:/cache
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities:
+                - gpu
+    healthcheck:
+      disable: false
+
+  redis:
+    container_name: immich_redis
+    image: "docker.io/valkey/valkey:9@sha256:3b55fbaa0cd93cf0d9d961f405e4dfcc70efe325e2d84da207a0a8e6d8fde4f9"
+    restart: always
+    healthcheck:
+      disable: false
+
+  database:
+    container_name: immich_postgres
+    image: "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23"
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: "{{ immich_db_password }}"
+      POSTGRES_USER: "postgres"
+      POSTGRES_DB: "immich"
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+      DB_STORAGE_TYPE: "SSD"
+    volumes:
+      - "{{ immich_db_dir }}:/var/lib/postgresql/data"
+    healthcheck:
+      disable: false
+
+volumes:
+  model-cache:

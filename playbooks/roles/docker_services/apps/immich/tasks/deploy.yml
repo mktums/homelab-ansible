@@ -1,0 +1,45 @@
+---
+- name: Create Immich directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ immich_opt_dir }}"
+    - "{{ immich_upload_dir }}"
+    - "{{ immich_db_dir }}"
+
+- name: Write Immich .env file
+  ansible.builtin.copy:
+    content: |
+      IMMICH_VERSION={{ immich_image_tag }}
+      UPLOAD_LOCATION={{ immich_upload_dir }}
+      DB_DATA_LOCATION={{ immich_db_dir }}
+      TZ=Etc/UTC
+      DB_PASSWORD={{ immich_db_password }}
+      DB_USERNAME=postgres
+      DB_DATABASE_NAME=immich
+      IMMICH_CONFIG_FILE={{ immich_config_file }}
+    dest: "{{ immich_opt_dir }}/.env"
+    mode: "0600"
+    backup: true
+
+- name: Render Immich config file
+  ansible.builtin.template:
+    src: immich-config.json.j2
+    dest: "{{ immich_opt_dir }}/immich.json"
+    mode: "0644"
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ immich_opt_dir }}/docker-compose.yml"
+    mode: "0644"
+
+- name: Deploy Immich stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ immich_opt_dir }}"
+    files:
+      - docker-compose.yml
+    state: present
+    pull: missing

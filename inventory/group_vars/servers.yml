@@ -126,5 +126,8 @@ kopia_global_parallelism:
 # ── Kopia sync-to (secondary repo on SSD) ─────────────────────────────
 kopia_sync_secondary_enabled: true
 
+# Immich
+immich_db_password: "{{ vault_immich_db_password }}"
+
 # ── Kopia sync-to (external repo on T7 USB) ───────────────────────────
 kopia_sync_external_enabled: true

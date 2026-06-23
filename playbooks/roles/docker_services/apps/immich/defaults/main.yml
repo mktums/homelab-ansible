@@ -1,0 +1,18 @@
+# Immich defaults
+
+# Images
+immich_image_name: "ghcr.io/immich-app/immich-server"
+immich_image_tag: "release"
+immich_ml_image_name: "ghcr.io/immich-app/immich-machine-learning"
+immich_ml_image_tag: "release-cuda"
+
+# Paths
+immich_opt_dir: "{{ ansible_opt_base }}/immich"
+immich_upload_dir: "/mnt/data/immich"
+immich_db_dir: "{{ docker_data_base }}/immich/postgres"
+
+# CNAME subdomain (without .{{ lan_domain }})
+immich_cname: "photos"
+
+# Config file path inside container
+immich_config_file: "/config/immich.json"

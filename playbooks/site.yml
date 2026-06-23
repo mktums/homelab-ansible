@@ -155,6 +155,10 @@
       tags: [linkwarden, layer_docker_apps, docker_services]
       when: inventory_hostname in groups.get('linkwarden_hosts', [])
 
+    - role: docker_services/apps/immich
+      tags: [immich, layer_docker_apps, docker_services]
+      when: inventory_hostname in groups.get('immich_hosts', [])
+
     # ── Jellyfin (disabled: metadata APIs not working) ────
     # - role: docker_services/apps/jellyfin
     #   tags: [jellyfin, layer_docker_apps, docker_services]

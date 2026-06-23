@@ -56,6 +56,8 @@ Internet
     │   │   └── vw.lan
     │   └── linkwarden     (via Traefik)
     │       └── links.lan
+    │   └── immich         (via Traefik)
+    │       └── photos.lan
     │
     └── lab2  10.10.10.11  (MAC 2c:56:dc:7b:69:d1)
         Debian/Ubuntu Server
@@ -96,6 +98,7 @@ DNS (*.lan resolved by dnsmasq):
   beszel.lan          → lab2.lan     (CNAME)
   chef.tools.lan      → lab2.lan     (CNAME)
   it.tools.lan        → lab2.lan     (CNAME)
+  photos.lan          → lab1.lan     (CNAME)
 ```
 
 ---
