@@ -1,0 +1,17 @@
+---
+services:
+  dbgate:
+    image: "{{ dbgate_image_name }}:{{ dbgate_image_tag }}"
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - "{{ dbgate_data_dir }}:/root/.dbgate"
+      - /etc/localtime:/etc/localtime:ro
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.dbgate.rule: "Host(`{{ dbgate_cname }}.{{ lan_domain }}`)"
+      traefik.http.routers.dbgate.entrypoints: "websecure"
+      traefik.http.routers.dbgate.tls: "true"
+      traefik.http.routers.dbgate.tls.certresolver: "step-ca"
+      traefik.http.services.dbgate.loadbalancer.server.port: "3000"

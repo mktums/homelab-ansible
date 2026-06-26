@@ -2,7 +2,6 @@
 services:
   dockhand:
     image: "{{ dockhand_image_name }}:{{ dockhand_image_tag }}"
-    container_name: dockhand
     restart: unless-stopped
     group_add:
       - "{{ _dockhand_docker_gid }}"

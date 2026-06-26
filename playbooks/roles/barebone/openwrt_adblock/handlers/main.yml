@@ -4,5 +4,6 @@
 # Ansible deduplicates handlers by name within a play.
 
 - name: Commit and restart unbound
-  ansible.builtin.raw: uci commit unbound && service unbound restart
+  community.openwrt.command:
+    cmd: uci commit unbound && service unbound restart
   changed_when: true

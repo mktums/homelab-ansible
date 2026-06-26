@@ -23,3 +23,6 @@ step_ca_acme_max_ttl: "8760h"  # 1 year
 # JWK certificate TTL
 step_ca_jwk_default_ttl: "24h"
 step_ca_jwk_max_ttl: "8760h"  # 1 year
+
+# Wildcard certificate policy (empty list = no wildcard policy)
+step_ca_policy_wildcards: []

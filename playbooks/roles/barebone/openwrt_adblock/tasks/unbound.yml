@@ -71,6 +71,8 @@
         forward-addr: 1.0.0.1@853#cloudflare-dns.com
         forward-addr: 8.8.8.8@853#dns.google
         forward-addr: 8.8.4.4@853#dns.google
+        forward-addr: 9.9.9.9@853#dns.quad9.net
+        forward-addr: 149.112.112.112@853#dns.quad9.net
     dest: /etc/unbound/unbound_ext.conf
   notify: Commit and restart unbound
 

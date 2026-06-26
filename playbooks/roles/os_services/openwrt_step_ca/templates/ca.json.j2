@@ -29,6 +29,21 @@
           "maxTLSCertDuration": "{{ step_ca_acme_max_ttl }}"
         }
       }
+    ]{% if step_ca_policy_wildcards %},
+    "policy": {
+      "x509": {
+        "allow": {
+          "dns": {{ step_ca_policy_wildcards | to_json }}
+        },
+        "allowWildcardNames": true
+      }
+    }{% endif %},
+    "enableAdmin": true,
+    "admins": [
+      {
+        "subject": "admin@{{ step_ca_cname }}.{{ lan_domain }}",
+        "provisioner": "admin@{{ step_ca_cname }}.{{ lan_domain }}"
+      }
     ]
   }
 }

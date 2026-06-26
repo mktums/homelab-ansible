@@ -58,16 +58,11 @@
 # Guards (`when: inventory_hostname in groups[...`) prevent execution on wrong hosts.
 - name: Deploy homelab services
   hosts: servers
-  gather_facts: false
+  gather_facts: true
   become: true
   tags: [servers]
   vars_files:
     - ../vault/secrets.yml
-
-  pre_tasks:
-    - name: Gather facts
-      ansible.builtin.setup: {}
-      tags: [always]
 
   roles:
     # ── Layer 1: Barebone ──────────────────────────────────────────────
@@ -137,6 +132,10 @@
       tags: [it_tools, layer_docker_tools, docker_services]
       when: inventory_hostname in groups.get('it_tools_hosts', [])
 
+    - role: docker_services/tools/dbgate
+      tags: [dbgate, layer_docker_tools, docker_services]
+      when: inventory_hostname in groups.get('dbgate_hosts', [])
+
     # ── 3d: Apps ───────────────────────────────────────────────────────
     # User-facing applications with data lifecycle
     - role: docker_services/apps/vaultwarden
@@ -159,10 +158,9 @@
       tags: [immich, layer_docker_apps, docker_services]
       when: inventory_hostname in groups.get('immich_hosts', [])
 
-    # ── Jellyfin (disabled: metadata APIs not working) ────
-    # - role: docker_services/apps/jellyfin
-    #   tags: [jellyfin, layer_docker_apps, docker_services]
-    #   when: inventory_hostname in groups.get('jellyfin_hosts', [])
+    - role: docker_services/apps/jellyfin
+      tags: [jellyfin, layer_docker_apps, docker_services]
+      when: inventory_hostname in groups.get('jellyfin_hosts', [])
 
     # ── Arr-Stack (disabled: indexers blocked by DPI, APIs return 429) ────
     # - role: docker_services/apps/arr_stack

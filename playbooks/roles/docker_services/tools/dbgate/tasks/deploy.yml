@@ -1,0 +1,28 @@
+---
+- name: Create DBGate directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ dbgate_opt_dir }}"
+    - "{{ dbgate_data_dir }}"
+
+- name: Render DBGate .env file
+  ansible.builtin.template:
+    src: .env.j2
+    dest: "{{ dbgate_opt_dir }}/.env"
+    mode: "0600"
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ dbgate_opt_dir }}/docker-compose.yml"
+    mode: "0644"
+
+- name: Deploy DBGate stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ dbgate_opt_dir }}"
+    state: present
+    pull: missing
+  notify: Restart DBGate

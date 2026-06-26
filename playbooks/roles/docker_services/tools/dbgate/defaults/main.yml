@@ -1,0 +1,12 @@
+# DBGate defaults
+
+# Image
+dbgate_image_name: "dbgate/dbgate"
+dbgate_image_tag: "latest"
+
+# Paths
+dbgate_opt_dir: "{{ ansible_opt_base }}/dbgate"
+dbgate_data_dir: "{{ docker_data_base }}/dbgate"
+
+# CNAME subdomain (without .{{ lan_domain }})
+dbgate_cname: "db.tools"

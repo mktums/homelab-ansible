@@ -1,0 +1,6 @@
+---
+- name: Restart DBGate
+  community.docker.docker_compose_v2:
+    project_src: "{{ dbgate_opt_dir }}"
+    state: present
+    pull: missing

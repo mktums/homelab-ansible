@@ -1,7 +1,6 @@
 services:
   radarr:
     image: "{{ arr_radarr_image }}:{{ arr_radarr_tag }}"
-    container_name: radarr
     restart: unless-stopped
     environment:
       PUID: "{{ container_puid | string }}"
@@ -30,7 +29,6 @@ services:
 
   sonarr:
     image: "{{ arr_sonarr_image }}:{{ arr_sonarr_tag }}"
-    container_name: sonarr
     restart: unless-stopped
     environment:
       PUID: "{{ container_puid | string }}"
@@ -59,7 +57,6 @@ services:
 
   prowlarr:
     image: "{{ arr_prowlarr_image }}:{{ arr_prowlarr_tag }}"
-    container_name: prowlarr
     restart: unless-stopped
     environment:
       PUID: "{{ container_puid | string }}"
@@ -87,7 +84,6 @@ services:
 
   lidarr:
     image: "{{ arr_lidarr_image }}:{{ arr_lidarr_tag }}"
-    container_name: lidarr
     restart: unless-stopped
     environment:
       PUID: "{{ container_puid | string }}"
@@ -116,7 +112,6 @@ services:
 
   bazarr:
     image: "{{ arr_bazarr_image }}:{{ arr_bazarr_tag }}"
-    container_name: bazarr
     restart: unless-stopped
     environment:
       PUID: "{{ container_puid | string }}"
@@ -144,7 +139,6 @@ services:
 
   seerr:
     image: "{{ arr_seerr_image }}:{{ arr_seerr_tag }}"
-    container_name: seerr
     init: true
     restart: unless-stopped
     env_file: .env

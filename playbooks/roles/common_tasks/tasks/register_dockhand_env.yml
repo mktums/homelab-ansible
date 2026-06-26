@@ -98,3 +98,18 @@
     status_code: 200
   delegate_to: localhost
   become: false
+
+- name: Configure scanner
+  ansible.builtin.uri:
+    url: "http://{{ _dockhand_server }}:{{ dockhand_web_port }}/api/settings/scanner"
+    method: POST
+    body_format: json
+    body:
+      scanner: "{{ dockhand_scanner }}"
+      envId: "{{ _dockhand_env_id }}"
+    headers:
+      Authorization: "Bearer {{ _dockhand_api_token.json.token }}"
+    validate_certs: false
+    status_code: 200
+  delegate_to: localhost
+  become: false
