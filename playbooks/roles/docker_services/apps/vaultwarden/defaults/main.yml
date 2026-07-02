@@ -2,7 +2,7 @@
 
 # Image
 vaultwarden_image_name: "vaultwarden/server"
-vaultwarden_image_tag: "latest"
+vaultwarden_image_tag: "1.36.0"
 
 # Paths
 vaultwarden_opt_dir: "{{ ansible_opt_base }}/vaultwarden"

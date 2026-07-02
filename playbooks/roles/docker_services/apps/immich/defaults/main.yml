@@ -2,9 +2,9 @@
 
 # Images
 immich_image_name: "ghcr.io/immich-app/immich-server"
-immich_image_tag: "release"
+immich_image_tag: "v3.0.0"
 immich_ml_image_name: "ghcr.io/immich-app/immich-machine-learning"
-immich_ml_image_tag: "release-cuda"
+immich_ml_image_tag: "{{ immich_image_tag }}-cuda"
 
 # Paths
 immich_opt_dir: "{{ ansible_opt_base }}/immich"

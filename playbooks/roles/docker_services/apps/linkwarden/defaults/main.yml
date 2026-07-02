@@ -2,7 +2,7 @@
 
 # Images
 linkwarden_image_name: "ghcr.io/linkwarden/linkwarden"
-linkwarden_image_tag: "latest"
+linkwarden_image_tag: "v2.14.1"
 
 # Paths
 linkwarden_opt_dir: "{{ ansible_opt_base }}/linkwarden"

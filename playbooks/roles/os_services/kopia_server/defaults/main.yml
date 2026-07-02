@@ -1,5 +1,9 @@
 # Kopia server defaults (native binary)
 
+# Version (shared with kopia_agent via meta dependency)
+kopia_version: "0.23.1"
+kopia_checksum: "sha256:3998c96b2db3410880ec8f6723f3c127248915896c22e6b882b352693230253a"
+
 # Paths
 kopia_opt_dir: "{{ ansible_opt_base }}/kopia_server"
 kopia_config_dir: "{{ srv_base }}/kopia"

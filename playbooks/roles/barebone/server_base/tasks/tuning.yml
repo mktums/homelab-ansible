@@ -212,7 +212,7 @@
   when:
     - item.stdout is defined
     - "'Reserved block count:' in item.stdout"
-    - (item.stdout | regex_search('Reserved block count:\s*(\\d+)', evaluate=True))[0] != '0'
+    - (item.stdout | regex_search('Reserved block count:\s*(\\d+)', '\\1'))[0] != '0'
 
 - name: Storage | Create BTRFS scrub script directory
   ansible.builtin.file:

@@ -17,9 +17,15 @@
 
 - name: Download step-ca binary
   community.openwrt.command:
-    cmd: cd /tmp/step-ca && curl -LO https://dl.smallstep.com/certificates/docs-ca-install/latest/step-ca_linux_arm64.tar.gz
+    cmd: cd /tmp/step-ca && curl -LO https://github.com/smallstep/certificates/releases/download/v{{ step_ca_version }}/step-ca_linux_arm64.tar.gz
     uses_shell: true
   changed_when: true
+
+- name: Verify step-ca checksum
+  community.openwrt.command:
+    cmd: cd /tmp/step-ca && echo "{{ step_ca_checksum }}  step-ca_linux_arm64.tar.gz" | sha256sum -c
+    uses_shell: true
+  changed_when: false
 
 - name: Extract step-ca archive
   community.openwrt.command:
@@ -34,9 +40,15 @@
 
 - name: Download step CLI binary
   community.openwrt.command:
-    cmd: cd /tmp/step-ca && curl -LO https://dl.smallstep.com/cli/docs-ca-install/latest/step_linux_arm64.tar.gz
+    cmd: cd /tmp/step-ca && curl -LO https://github.com/smallstep/cli/releases/download/v{{ step_cli_version }}/step_linux_arm64.tar.gz
     uses_shell: true
   changed_when: true
+
+- name: Verify step CLI checksum
+  community.openwrt.command:
+    cmd: cd /tmp/step-ca && echo "{{ step_cli_checksum }}  step_linux_arm64.tar.gz" | sha256sum -c
+    uses_shell: true
+  changed_when: false
 
 - name: Extract step CLI archive
   community.openwrt.command:

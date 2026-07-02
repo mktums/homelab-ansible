@@ -12,6 +12,7 @@
     url: "https://github.com/kopia/kopia/releases/download/v{{ kopia_version }}/kopia_{{ kopia_version }}_linux_amd64.deb"
     dest: "/tmp/kopia_{{ kopia_version }}_amd64.deb"
     mode: "0644"
+    checksum: "{{ kopia_checksum }}"
   when: kopia_installed_version.stdout != kopia_version
 
 - name: Install Kopia .deb package

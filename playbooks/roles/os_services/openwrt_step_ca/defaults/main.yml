@@ -1,5 +1,11 @@
 # step-ca on OpenWrt defaults
 
+# Versions
+step_ca_version: "0.30.2"
+step_ca_checksum: "43f79d1b0b8cab9895dbadd46b0a014006f682a6b1341e1fadf0be31d4b9f4b4"
+step_cli_version: "0.30.6"
+step_cli_checksum: "eff511c3e6797039702e74fada62b10b079e413742f925703e5b7d810e611619"
+
 # Paths
 step_path: "/etc/step-ca"
 step_ca_binary: "/usr/bin/step-ca"

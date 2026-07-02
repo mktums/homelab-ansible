@@ -2,7 +2,7 @@
 
 # Image
 traefik_image_name: "traefik"
-traefik_image_tag: "v3"
+traefik_image_tag: "v3.7"
 
 # Paths
 traefik_data_dir: "{{ docker_data_base }}/traefik"  # acme.json (certs)

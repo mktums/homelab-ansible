@@ -28,7 +28,7 @@
 - name: Download adblock-lean installer
   community.openwrt.command:
     cmd: >
-      uclient-fetch https://raw.githubusercontent.com/lynxthecat/adblock-lean/master/abl-install.sh
+      uclient-fetch https://raw.githubusercontent.com/lynxthecat/adblock-lean/v0.8.1/abl-install.sh
       -O /tmp/abl-install.sh
   changed_when: true
   when: not _adblock_installed

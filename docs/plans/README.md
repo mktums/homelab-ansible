@@ -34,4 +34,4 @@ Each file describes a single change or refactoring effort: the motivation, affec
 | 12 | High | [Migrate Kopia server from Docker to native binary](012-migrate-kopia-to-native.md) | Medium | ✅ Done (2026-06-16) |
 | 13 | Normal | [Add DockHand](013-add-dockhand.md) | Medium | Done |
 | 15 | Normal | [Add Immich](015-add-immich.md) | Medium | ✅ Done (2026-06-21) |
-| 16 | High | [DevOps audit — 40 issues](016-devops-audit.md) | Hard | In review |
+| 16 | High | [DevOps audit — 41 issues](016-devops-audit.md) | Hard | ✅ Done (2026-07-02) |

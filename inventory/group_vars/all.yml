@@ -7,5 +7,3 @@ lan_dns: "10.10.10.1"
 container_puid: 1000
 container_pgid: 1000
 
-# Pinned versions (update manually)
-kopia_version: "0.23.0"
