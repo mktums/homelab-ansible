@@ -43,19 +43,21 @@ Internet
     │   Debian/Ubuntu Server
     │   Docker host
     │   ├── traefik        :80/:443
-    │   │   └── traefik.lab1.lan  (dashboard, basic auth)
+    │   │   └── traefik.lab1.lan  (dashboard)
     │   ├── postgres       :5432
     │   │   └── db.lan
     │   ├── meilisearch    :7700 (internal, for linkwarden)
     │   ├── kopia server   :51514 (native)
     │   ├── kopia agent    (native)
     │   ├── dockhand agent (Hawser, connects to dockhand.lan)
+    │   ├── dbgate         (via Traefik)
+    │   │   └── db.lan
     │   ├── qbittorrent    (via Traefik)
     │   │   └── qbit.lab1.lan
     │   ├── vaultwarden    (via Traefik)
     │   │   └── vw.lan
-    │   └── linkwarden     (via Traefik)
-    │       └── links.lan
+    │   ├── linkwarden     (via Traefik)
+    │   │   └── links.lan
     │   └── immich         (via Traefik)
     │       └── photos.lan
     │
@@ -63,7 +65,9 @@ Internet
         Debian/Ubuntu Server
         Docker host
         ├── traefik        :80/:443
-        │   └── traefik.lab2.lan  (dashboard, basic auth)
+        │   └── traefik.lab2.lan  (dashboard)
+        ├── homepage       (via Traefik)
+        │   └── home.lan
         ├── dockhand       (via Traefik)
         │   └── dockhand.lan
         ├── beszel         :8090 (via Traefik)
@@ -88,6 +92,7 @@ DNS (*.lan resolved by dnsmasq):
   step-ca.lan         → openwrt.lan  (CNAME)
   traefik.lab1.lan    → lab1.lan     (CNAME)
   traefik.lab2.lan    → lab2.lan     (CNAME)
+  home.lan            → lab2.lan     (CNAME)
   dockhand.lan        → lab2.lan     (CNAME)
   vw.lan              → lab1.lan     (CNAME)
   qbit.lab1.lan       → lab1.lan     (CNAME)
@@ -232,8 +237,8 @@ ansible-playbook playbooks/site.yml --limit lab2
 # Router only
 ansible-playbook playbooks/site.yml --tags router
 
-# Servers only
-ansible-playbook playbooks/site.yml --tags servers
+# Servers only (use --limit instead)
+ansible-playbook playbooks/site.yml --limit lab1
 ```
 
 Add `--ask-vault-pass` if not using `.vault_pass`.
@@ -287,6 +292,16 @@ labels:
   traefik.http.routers.myapp.tls: "true"
   traefik.http.routers.myapp.tls.certresolver: "step-ca"
   traefik.http.services.myapp.loadbalancer.server.port: "8080"
+```
+
+Homepage auto-discovery labels (add alongside Traefik labels):
+
+```yaml
+  homepage.group: "Apps"
+  homepage.name: "MyApp"
+  homepage.icon: "sh-myapp"
+  homepage.href: "https://myapp.lan"
+  homepage.description: "Short description"
 ```
 
 ---

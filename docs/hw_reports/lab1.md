@@ -1,6 +1,6 @@
 # Hardware Report: lab1
 
-Generated: 2026-06-17 17:12:06 UTC
+Generated: 2026-07-03 21:47:04 UTC
 
 ## System & CPU
 
@@ -42,11 +42,11 @@ Generated: 2026-06-17 17:12:06 UTC
 
 | Device | Type | Model | Size | Used | Health | Notes |
 |:---|:---|:---|:---|:---|:---|:---|
-| /dev/sda | HDD | WDC WD30EFRX-68AX9N0 | 2.73 TB | 2 MB (1%) | PASSED | - |
+| /dev/sda | HDD | WDC WD30EFRX-68AX9N0 | 2.73 TB | 2.64 GB (1%) | PASSED | - |
 | /dev/sdb | HDD | WDC WD30EFRX-68AX9N0 | 2.73 TB | 2 MB (1%) | PASSED | - |
-| /dev/sdc | HDD | WDC WD20EZRZ-00Z5HB0 | 1.82 TB | 9 MB (1%) | PASSED | - |
+| /dev/sdc | HDD | WDC WD20EZRZ-00Z5HB0 | 1.82 TB | 2.67 GB (1%) | PASSED | - |
 | /dev/sdd | HDD | WDC WD10EARS-00Y5B1 | 931.51 GB | 2 MB (1%) | PASSED | - |
-| /dev/nvme0n1 | NVMe | Samsung SSD 960 PRO 512GB | 476.94 GB | 28.05 GB (7%) | PASSED | Wear: 21% |
+| /dev/nvme0n1 | NVMe | Samsung SSD 960 PRO 512GB | 476.94 GB | 43.71 GB (10%) | PASSED | Wear: 21% |
 
 ### RAID Arrays
 
