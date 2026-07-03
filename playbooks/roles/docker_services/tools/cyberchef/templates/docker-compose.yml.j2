@@ -12,3 +12,8 @@ services:
       traefik.http.routers.cyberchef.tls: "true"
       traefik.http.routers.cyberchef.tls.certresolver: "step-ca"
       traefik.http.services.cyberchef.loadbalancer.server.port: "8080"
+      homepage.group: "Tools"
+      homepage.name: "CyberChef"
+      homepage.icon: "sh-cyberchef"
+      homepage.href: "https://{{ cyberchef_cname }}.{{ lan_domain }}"
+      homepage.description: "Crypto, encoding, and data utilities"

@@ -65,24 +65,30 @@
     state: directory
     mode: "0755"
 
-- name: Check if daemon.json exists
-  ansible.builtin.stat:
-    path: /etc/docker/daemon.json
-  register: _daemon_json_stat
-
-- name: Read existing daemon.json
-  ansible.builtin.slurp:
-    src: /etc/docker/daemon.json
-  register: _daemon_json
-  when: _daemon_json_stat.stat.exists
-
-- name: Configure Docker DNS resolver
-  ansible.builtin.copy:
-    content: "{{ (_daemon_json.content | b64decode | from_json if _daemon_json_stat.stat.exists else {}) | combine({'dns': [lan_dns]}) | to_nice_json }}"
+- name: Write Docker daemon configuration
+  ansible.builtin.template:
+    src: daemon.json.j2
     dest: /etc/docker/daemon.json
     mode: "0644"
     backup: true
   notify: Restart Docker
+
+- name: Ensure systemd drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    mode: "0755"
+  when: docker_tcp_host | bool
+
+- name: Enable Docker TCP API listener
+  ansible.builtin.template:
+    src: docker-override.conf.j2
+    dest: /etc/systemd/system/docker.service.d/override.conf
+    mode: "0644"
+  notify:
+    - Reload systemd daemon
+    - Restart Docker
+  when: docker_tcp_host | bool
 
 - name: Install nvidia-container-toolkit
   when: nvidia_gpu | default(false)

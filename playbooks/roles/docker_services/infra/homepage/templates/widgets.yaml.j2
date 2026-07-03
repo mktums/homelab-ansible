@@ -1,0 +1,19 @@
+---
+# For configuration options and examples, please see:
+# https://gethomepage.dev/configs/info-widgets/
+- search:
+    provider: [google, duckduckgo] #, bing, baidu, brave or custom
+    focus: true # Optional, will set focus to the search bar on page load
+    showSearchSuggestions: true # Optional, will show search suggestions. Defaults to false
+    target: _blank # One of _self, _blank, _parent or _top
+
+- openmeteo:
+    label: Moscow
+    latitude: 55.687852
+    longitude: 37.722314
+    timezone: Europe/Moscow
+    units: metric
+    cache: 5 # Time in minutes to cache API responses, to stay within limits
+    forecast_hours: 10
+    format: # optional, Intl.NumberFormat options
+      maximumFractionDigits: 1

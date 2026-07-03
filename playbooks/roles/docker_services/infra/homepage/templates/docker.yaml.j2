@@ -1,0 +1,5 @@
+{% for host in homepage_docker_hosts %}
+{{ host }}:
+  host: {{ host }}.{{ lan_domain }}
+  port: 2375
+{% endfor %}

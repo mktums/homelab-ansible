@@ -29,3 +29,13 @@ services:
       traefik.http.routers.dockhand.tls: "true"
       traefik.http.routers.dockhand.tls.certresolver: "step-ca"
       traefik.http.services.dockhand.loadbalancer.server.port: "{{ dockhand_web_port }}"
+      homepage.group: "Infra"
+      homepage.name: "DockHand"
+      homepage.icon: "docker.png"
+      homepage.href: "https://{{ dockhand_cname }}.{{ lan_domain }}"
+      homepage.description: "Docker management"
+      homepage.widget.type: "dockhand"
+      homepage.widget.url: "https://{{ dockhand_cname }}.{{ lan_domain }}"
+      homepage.widget.username: "{{ dockhand_admin_user }}"
+      homepage.widget.password: "{{ dockhand_admin_password }}"
+      homepage.widget.fields: '["running","total","pending_updates"]'

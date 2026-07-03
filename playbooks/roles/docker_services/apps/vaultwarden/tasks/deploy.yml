@@ -21,7 +21,7 @@
     content: |
       DATABASE_URL=postgresql://vaultwarden:{{ vault_vaultwarden_db_password }}@{{ postgres_cname }}.{{ lan_domain }}:5432/vaultwarden
       DOMAIN=https://{{ vaultwarden_cname }}.{{ lan_domain }}
-      ADMIN_TOKEN={{ vaultwarden_admin_token }}
+      ADMIN_TOKEN={{ vaultwarden_admin_token | replace('$', '$$') }}
       SIGNUPS_ALLOWED=true
       LOG_LEVEL=warn
     dest: "{{ vaultwarden_opt_dir }}/.env"

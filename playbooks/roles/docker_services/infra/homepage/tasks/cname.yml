@@ -1,0 +1,7 @@
+---
+- name: Register Homepage CNAME
+  ansible.builtin.include_role:
+    name: common_tasks
+    tasks_from: register_cname
+  vars:
+    cname_name: "{{ homepage_cname }}.{{ lan_domain }}"

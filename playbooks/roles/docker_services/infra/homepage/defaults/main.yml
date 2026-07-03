@@ -1,0 +1,23 @@
+# Homepage defaults
+
+# Image
+homepage_image_name: "ghcr.io/gethomepage/homepage"
+homepage_image_tag: "latest"
+
+# Paths
+homepage_opt_dir: "{{ ansible_opt_base }}/homepage"
+homepage_config_dir: "{{ homepage_opt_dir }}/config"
+
+# CNAME subdomain (without .{{ lan_domain }})
+homepage_cname: "home"
+
+# Docker hosts to register in docker.yaml
+homepage_docker_hosts: "{{ groups.get('docker_hosts', []) }}"
+
+# Config files to render from templates (*.j2 → config/)
+homepage_config_files:
+  - docker.yaml
+  - bookmarks.yaml
+  - services.yaml
+  - widgets.yaml
+  - settings.yaml

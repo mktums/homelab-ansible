@@ -1,0 +1,5 @@
+---
+- name: Restart Homepage
+  community.docker.docker_compose_v2:
+    project_src: "{{ homepage_opt_dir }}"
+    state: present

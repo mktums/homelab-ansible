@@ -1,0 +1,18 @@
+---
+services:
+  homepage:
+    image: "{{ homepage_image_name }}:{{ homepage_image_tag }}"
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ homepage_config_dir }}:/app/config"
+    environment:
+      HOMEPAGE_ALLOWED_HOSTS: "{{ homepage_cname }}.{{ lan_domain }}"
+      LOG_TARGETS: "stdout"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.homepage.rule: "Host(`{{ homepage_cname }}.{{ lan_domain }}`)"
+      traefik.http.routers.homepage.entrypoints: "websecure"
+      traefik.http.routers.homepage.tls: "true"
+      traefik.http.routers.homepage.tls.certresolver: "step-ca"
+      traefik.http.services.homepage.loadbalancer.server.port: "3000"

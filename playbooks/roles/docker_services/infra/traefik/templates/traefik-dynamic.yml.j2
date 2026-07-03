@@ -7,11 +7,4 @@ http:
       tls:
         certResolver: step-ca
       service: api@internal
-      middlewares:
-        - dashboard-auth
 
-  middlewares:
-    dashboard-auth:
-      basicAuth:
-        users:
-          - "{{ traefik_dashboard_user }}:{{ traefik_dashboard_password | password_hash('bcrypt', vault_bcrypt_salt) }}"

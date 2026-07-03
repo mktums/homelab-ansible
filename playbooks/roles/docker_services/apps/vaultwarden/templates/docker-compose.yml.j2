@@ -15,3 +15,8 @@ services:
       traefik.http.routers.vaultwarden.tls: "true"
       traefik.http.routers.vaultwarden.tls.certresolver: "step-ca"
       traefik.http.services.vaultwarden.loadbalancer.server.port: "80"
+      homepage.group: "Apps"
+      homepage.name: "Vaultwarden"
+      homepage.icon: "sh-vaultwarden"
+      homepage.href: "https://{{ vaultwarden_cname }}.{{ lan_domain }}"
+      homepage.description: "Password manager"

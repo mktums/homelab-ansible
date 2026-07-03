@@ -60,7 +60,7 @@
   hosts: servers
   gather_facts: true
   become: true
-  tags: [servers]
+  # tags: [servers]
   vars_files:
     - ../vault/secrets.yml
 
@@ -121,6 +121,10 @@
     - role: docker_services/infra/dockhand_agent
       tags: [dockhand_agent, layer_docker_infra, docker_services]
       when: inventory_hostname in groups.get('dockhand_agent_hosts', [])
+
+    - role: docker_services/infra/homepage
+      tags: [homepage, layer_docker_infra, docker_services]
+      when: inventory_hostname in groups.get('homepage_hosts', [])
 
     # ── 3c: Tools ──────────────────────────────────────────────────────
     # Stateless utilities (browser-based, no data lifecycle)

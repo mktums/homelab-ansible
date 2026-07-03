@@ -15,3 +15,8 @@ services:
       traefik.http.routers.dbgate.tls: "true"
       traefik.http.routers.dbgate.tls.certresolver: "step-ca"
       traefik.http.services.dbgate.loadbalancer.server.port: "3000"
+      homepage.group: "Apps"
+      homepage.name: "DBGate"
+      homepage.icon: "sh-dbgate"
+      homepage.href: "https://{{ dbgate_cname }}.{{ lan_domain }}"
+      homepage.description: "Database management"

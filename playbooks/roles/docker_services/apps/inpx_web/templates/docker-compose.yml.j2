@@ -28,6 +28,11 @@ services:
       traefik.http.routers.inpx-web.tls: "true"
       traefik.http.routers.inpx-web.tls.certresolver: "step-ca"
       traefik.http.services.inpx-web-svc.loadbalancer.server.port: "12380"
+      homepage.group: "Apps"
+      homepage.name: "inpx-web"
+      homepage.icon: "mdi-book-open-page-variant"
+      homepage.href: "https://{{ inpx_web_cname }}.{{ lan_domain }}"
+      homepage.description: "Local ebook library"
 
   liberama:
     image: "{{ inpx_web_image_name }}:{{ inpx_web_image_tag }}"
@@ -53,3 +58,8 @@ services:
       traefik.http.routers.liberama.tls: "true"
       traefik.http.routers.liberama.tls.certresolver: "step-ca"
       traefik.http.services.liberama-svc.loadbalancer.server.port: "44080"
+      homepage.group: "Apps"
+      homepage.name: "liberama"
+      homepage.icon: "mdi-book-open-variant"
+      homepage.href: "https://{{ inpx_web_cname }}.{{ lan_domain }}/read"
+      homepage.description: "Local ebook reader"

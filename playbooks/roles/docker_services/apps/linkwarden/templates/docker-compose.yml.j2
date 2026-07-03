@@ -14,3 +14,8 @@ services:
       traefik.http.routers.linkwarden.tls: "true"
       traefik.http.routers.linkwarden.tls.certresolver: "step-ca"
       traefik.http.services.linkwarden.loadbalancer.server.port: "3000"
+      homepage.group: "Apps"
+      homepage.name: "Linkwarden"
+      homepage.icon: "sh-linkwarden"
+      homepage.href: "https://{{ linkwarden_cname }}.{{ lan_domain }}"
+      homepage.description: "Bookmark manager"

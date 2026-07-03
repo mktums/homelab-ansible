@@ -37,3 +37,8 @@ services:
       - /etc/localtime:/etc/localtime:ro
     labels:
       traefik.enable: "false"
+      homepage.group: "Infra"
+      homepage.name: "Traefik - {{ inventory_hostname | title }}"
+      homepage.icon: "traefik.png"
+      homepage.href: "https://{{ traefik_cname }}.{{ inventory_hostname }}.{{ lan_domain }}"
+      homepage.description: "Reverse proxy"
