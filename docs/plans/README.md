@@ -35,3 +35,4 @@ Each file describes a single change or refactoring effort: the motivation, affec
 | 13 | Normal | [Add DockHand](013-add-dockhand.md) | Medium | Done |
 | 15 | Normal | [Add Immich](015-add-immich.md) | Medium | ✅ Done (2026-06-21) |
 | 16 | High | [DevOps audit — 41 issues](016-devops-audit.md) | Hard | ✅ Done (2026-07-02) |
+| 17 | Normal | [Restructure roles into 7-layer model](017-restructure-7-layers.md) | Hard | ✅ Done (2026-07-05) |

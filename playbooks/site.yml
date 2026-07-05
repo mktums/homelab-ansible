@@ -4,20 +4,24 @@
 # Layer model (roles grouped by deployment layer):
 #   Layer 1: Barebone     — OS setup, users, configs
 #   Layer 2: OS Services  — native binaries, system-level services
-#   Layer 3: Docker       — containerized services (infra, tools, shared, apps)
+#   Layer 3: Shared       — foundational services (traefik, databases)
+#   Layer 4: Platform     — monitoring, alerting, observability
+#   Layer 5: Tools        — utility and admin interfaces
+#   Layer 6: Home         — user-facing home services
+#   Layer 7: Dev          — development services
 #
 # Usage:
-#   ansible-playbook site.yml                                     # full deploy
-#   ansible-playbook site.yml --tags layer_barebone               # barebone only
-#   ansible-playbook site.yml --tags layer_os_services            # OS services only
-#   ansible-playbook site.yml --tags layer_docker_infra        # infra services only
-#   ansible-playbook site.yml --tags layer_docker_tools        # tools only
-#   ansible-playbook site.yml --tags layer_docker_shared       # shared deps only
-#   ansible-playbook site.yml --tags layer_docker_apps         # apps only
-#   ansible-playbook site.yml --tags traefik                      # single service
-#   ansible-playbook site.yml --tags router                       # router only
-#   ansible-playbook site.yml --tags servers                      # servers only
-#   ansible-playbook site.yml --limit lab2                        # all roles, only on lab2
+#   ansible-playbook site.yml                           # full deploy
+#   ansible-playbook site.yml --tags layer_barebone     # barebone only
+#   ansible-playbook site.yml --tags layer_os_services  # OS services only
+#   ansible-playbook site.yml --tags layer_shared       # shared dependencies only
+#   ansible-playbook site.yml --tags layer_platform     # platform services only
+#   ansible-playbook site.yml --tags layer_tools        # tools only
+#   ansible-playbook site.yml --tags layer_home         # home services only
+#   ansible-playbook site.yml --tags traefik            # single service
+#   ansible-playbook site.yml --tags router             # router only
+#   ansible-playbook site.yml --tags servers            # servers only
+#   ansible-playbook site.yml --limit lab2              # all roles, only on lab2
 #
 
 # ── Play 1: OpenWrt router ─────────────────────────────────────────────
@@ -51,8 +55,8 @@
 
 # ── Play 2: Servers ────────────────────────────────────────────────────
 # Dependency chain (resolved automatically via role meta/main.yml):
-#   barebone/server_base → os_services/step_cli → docker_services/infra/traefik → [services]
-#   docker_services/shared/postgres + docker_services/shared/meilisearch → linkwarden
+#   barebone/server_base → os_services/step_cli → shared/traefik → [services]
+#   shared/postgres + shared/meilisearch → linkwarden
 #
 # Roles are deduplicated within this play — dependencies run once.
 # Guards (`when: inventory_hostname in groups[...`) prevent execution on wrong hosts.
@@ -87,86 +91,93 @@
       tags: [kopia_agent, layer_os_services]
       when: inventory_hostname in groups.get('kopia_agent_hosts', [])
 
-    # ── Layer 3: Docker Services ───────────────────────────────────────
-    # Containerized services behind Traefik
-
-    # ── 3a: Shared dependencies ────────────────────────────────────────
-    # Databases, caches — exist to support other services
-    - role: docker_services/shared/meilisearch
-      tags: [meilisearch, layer_docker_shared, docker_services]
+    # ── Layer 3: Shared ────────────────────────────────────────────────
+    # Foundational services — traefik proxy, databases, caches.
+    # Layers 4-7 can depend on these, but are not obliged to.
+    # Roles: shared/traefik, shared/postgres, shared/meilisearch
+    - role: shared/meilisearch
+      tags: [meilisearch, layer_shared]
       when: inventory_hostname in groups.get('meilisearch_hosts', [])
 
-    - role: docker_services/shared/postgres
-      tags: [postgres, layer_docker_shared, docker_services]
+    - role: shared/postgres
+      tags: [postgres, layer_shared]
       when: inventory_hostname in groups.get('postgres_hosts', [])
 
-    # ── 3b: Infra services ─────────────────────────────────────────────
-    # Platform services: proxy, monitoring, backups, Docker management
-    - role: docker_services/infra/traefik
-      tags: [traefik, layer_docker_infra, docker_services]
+    - role: shared/traefik
+      tags: [traefik, layer_shared]
       when: inventory_hostname in groups.get('traefik_hosts', [])
 
-    - role: docker_services/infra/beszel_hub
-      tags: [beszel_hub, layer_docker_infra, docker_services]
+    # ── Layer 4: Platform ──────────────────────────────────────────────
+    # Monitoring, alerting, observability. Manages and observes the platform.
+    # Roles: platform/beszel_hub, platform/beszel_agent, platform/dockhand, platform/dockhand_agent
+    - role: platform/beszel_hub
+      tags: [beszel_hub, layer_platform]
       when: inventory_hostname in groups.get('beszel_hub_hosts', [])
 
-    - role: docker_services/infra/beszel_agent
-      tags: [beszel_agent, layer_docker_infra, docker_services]
+    - role: platform/beszel_agent
+      tags: [beszel_agent, layer_platform]
       when: inventory_hostname in groups.get('beszel_agent_hosts', [])
 
-    - role: docker_services/infra/dockhand
-      tags: [dockhand, layer_docker_infra, docker_services]
+    - role: platform/dockhand
+      tags: [dockhand, layer_platform]
       when: inventory_hostname in groups.get('dockhand_hosts', [])
 
-    - role: docker_services/infra/dockhand_agent
-      tags: [dockhand_agent, layer_docker_infra, docker_services]
+    - role: platform/dockhand_agent
+      tags: [dockhand_agent, layer_platform]
       when: inventory_hostname in groups.get('dockhand_agent_hosts', [])
 
-    - role: docker_services/infra/homepage
-      tags: [homepage, layer_docker_infra, docker_services]
-      when: inventory_hostname in groups.get('homepage_hosts', [])
-
-    # ── 3c: Tools ──────────────────────────────────────────────────────
-    # Stateless utilities (browser-based, no data lifecycle)
-    - role: docker_services/tools/cyberchef
-      tags: [cyberchef, layer_docker_tools, docker_services]
+    # ── Layer 5: Tools ─────────────────────────────────────────────────
+    # Utility and admin interfaces. Stateless or lightly stateful tools.
+    # Roles: tools/cyberchef, tools/it_tools, tools/dbgate
+    - role: tools/cyberchef
+      tags: [cyberchef, layer_tools]
       when: inventory_hostname in groups.get('cyberchef_hosts', [])
 
-    - role: docker_services/tools/it_tools
-      tags: [it_tools, layer_docker_tools, docker_services]
+    - role: tools/it_tools
+      tags: [it_tools, layer_tools]
       when: inventory_hostname in groups.get('it_tools_hosts', [])
 
-    # ── 3d: Apps ───────────────────────────────────────────────────────
-    # User-facing applications with data lifecycle
-    - role: docker_services/apps/dbgate
-      tags: [dbgate, layer_docker_apps, docker_services]
+    - role: tools/dbgate
+      tags: [dbgate, layer_tools]
       when: inventory_hostname in groups.get('dbgate_hosts', [])
 
-    - role: docker_services/apps/vaultwarden
-      tags: [vaultwarden, layer_docker_apps, docker_services]
+    # ── Layer 6: Home ──────────────────────────────────────────────────
+    # User-facing home services. Passwords, downloads, media, bookmarks, etc.
+    # Roles: home/vaultwarden, home/qbittorrent, home/inpx_web, home/linkwarden,
+    #        home/immich, home/jellyfin, home/arr_stack, home/homepage
+    - role: home/vaultwarden
+      tags: [vaultwarden, layer_home]
       when: inventory_hostname in groups.get('vaultwarden_hosts', [])
 
-    - role: docker_services/apps/qbittorrent
-      tags: [qbittorrent, layer_docker_apps, docker_services]
+    - role: home/qbittorrent
+      tags: [qbittorrent, layer_home]
       when: inventory_hostname in groups.get('qbittorrent_hosts', [])
 
-    - role: docker_services/apps/inpx_web
-      tags: [inpx_web, layer_docker_apps, docker_services]
+    - role: home/inpx_web
+      tags: [inpx_web, layer_home]
       when: inventory_hostname in groups.get('inpx_web_hosts', [])
 
-    - role: docker_services/apps/linkwarden
-      tags: [linkwarden, layer_docker_apps, docker_services]
+    - role: home/linkwarden
+      tags: [linkwarden, layer_home]
       when: inventory_hostname in groups.get('linkwarden_hosts', [])
 
-    - role: docker_services/apps/immich
-      tags: [immich, layer_docker_apps, docker_services]
+    - role: home/immich
+      tags: [immich, layer_home]
       when: inventory_hostname in groups.get('immich_hosts', [])
 
-    - role: docker_services/apps/jellyfin
-      tags: [jellyfin, layer_docker_apps, docker_services]
+    - role: home/jellyfin
+      tags: [jellyfin, layer_home]
       when: inventory_hostname in groups.get('jellyfin_hosts', [])
 
+    - role: home/homepage
+      tags: [homepage, layer_home]
+      when: inventory_hostname in groups.get('homepage_hosts', [])
+
     # ── Arr-Stack (disabled: indexers blocked by DPI, APIs return 429) ────
-    # - role: docker_services/apps/arr_stack
-    #   tags: [arr_stack, layer_docker_apps, docker_services]
+    # - role: home/arr_stack
+    #   tags: [arr_stack, layer_home]
     #   when: inventory_hostname in groups.get('arr_stack_hosts', [])
+
+    # ── Layer 7: Dev ───────────────────────────────────────────────────
+    # Development services. Forgejo, weblate, dev databases, dev homepage.
+    # Roles: (empty — future dev services)

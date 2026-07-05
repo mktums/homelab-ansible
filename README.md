@@ -275,7 +275,7 @@ LC_CTYPE=ru_RU.UTF-8    # Cyrillic recognized as valid letters
 
 ### New service
 
-1. Create `playbooks/roles/docker_services/<category>/<name>/` with `tasks/main.yml`, `handlers/main.yml`, `defaults/main.yml`
+1. Create `playbooks/roles/<layer>/<name>/` with `tasks/main.yml`, `handlers/main.yml`, `defaults/main.yml`
 2. Add CNAME registration using `include_role: common_tasks` with `tasks_from: register_cname`
 3. Add a group under `children` in `inventory/hosts.yml`
 4. Add the role to `site.yml` with appropriate `when:` guard and layer tag

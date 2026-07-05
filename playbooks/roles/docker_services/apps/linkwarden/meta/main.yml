@@ -1,5 +1,0 @@
----
-dependencies:
-  - role: docker_services/infra/traefik
-  - role: docker_services/shared/postgres
-  - role: docker_services/shared/meilisearch

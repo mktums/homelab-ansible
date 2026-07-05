@@ -1,4 +1,0 @@
----
-dependencies:
-  - role: docker_services/infra/traefik
-  - role: docker_services/shared/postgres

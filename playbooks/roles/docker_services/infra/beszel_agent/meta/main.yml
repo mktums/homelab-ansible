@@ -1,3 +1,0 @@
----
-dependencies:
-  - role: docker_services/infra/beszel_hub
