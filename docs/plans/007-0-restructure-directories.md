@@ -182,3 +182,4 @@ Multiple roles had URI/exec chains that fail when tasks are skipped but conditio
 ## Rollback
 
 `git revert` — every move is a `git mv`, fully tracked and reversible in one commit.
+

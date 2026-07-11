@@ -77,6 +77,8 @@ Internet
         │   └── chef.tools.lan
         ├── it-tools       (via Traefik)
         │   └── it.tools.lan
+        ├── searxng        (via Traefik)
+        │   └── search.lan
         ├── qbittorrent    (via Traefik)
         │   └── qbit.lab2.lan
         └── inpx-web       (via Traefik)
@@ -104,6 +106,7 @@ DNS (*.lan resolved by dnsmasq):
   chef.tools.lan      → lab2.lan     (CNAME)
   it.tools.lan        → lab2.lan     (CNAME)
   photos.lan          → lab1.lan     (CNAME)
+  search.lan          → lab2.lan     (CNAME)
 ```
 
 ---
@@ -221,10 +224,10 @@ ansible-playbook playbooks/site.yml
 # By layer
 ansible-playbook playbooks/site.yml --tags layer_barebone
 ansible-playbook playbooks/site.yml --tags layer_os_services
-ansible-playbook playbooks/site.yml --tags layer_docker_infra
-ansible-playbook playbooks/site.yml --tags layer_docker_tools
-ansible-playbook playbooks/site.yml --tags layer_docker_shared
-ansible-playbook playbooks/site.yml --tags layer_docker_apps
+ansible-playbook playbooks/site.yml --tags layer_shared
+ansible-playbook playbooks/site.yml --tags layer_platform
+ansible-playbook playbooks/site.yml --tags layer_tools
+ansible-playbook playbooks/site.yml --tags layer_home
 
 # Single service
 ansible-playbook playbooks/site.yml --tags traefik

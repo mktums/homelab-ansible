@@ -21,6 +21,7 @@ services:
       - "{{ qbittorrent_data_dir }}:/config"
       - "{{ downloads_dir }}:/downloads"
       - /etc/localtime:/etc/localtime:ro
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
     labels:
       traefik.enable: "true"
       traefik.http.routers.qbittorrent.rule: "Host(`{{ qbittorrent_cname }}.{{ inventory_hostname }}.{{ lan_domain }}`)"

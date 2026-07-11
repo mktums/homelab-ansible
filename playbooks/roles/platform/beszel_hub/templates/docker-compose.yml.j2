@@ -8,6 +8,7 @@ services:
     volumes:
       - "{{ beszel_hub_data_dir }}/data:/beszel_data"
       - /etc/localtime:/etc/localtime:ro
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
     environment:
       APP_URL: "https://{{ beszel_hub_cname }}.{{ lan_domain }}"
       USER_EMAIL: "{{ beszel_admin_email }}"

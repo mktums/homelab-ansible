@@ -204,3 +204,4 @@ ssh lab1 "systemctl disable --now kopia-backup@<username>.timer && rm /opt/ansib
 # Remove server-side user (optional)
 ssh lab1 "cd /opt/ansible/kopia_server && docker compose exec kopia-server kopia server users delete <username>@server"
 ```
+

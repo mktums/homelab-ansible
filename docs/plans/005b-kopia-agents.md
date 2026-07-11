@@ -137,3 +137,4 @@ Each service `tasks/main.yml` includes after deployment:
 ## Rollback
 
 Disable systemd timer instances, remove agent config files. Server-side user accounts can be cleaned up via `kopia server users delete`. Existing snapshots remain in the repository until retention expires them.
+

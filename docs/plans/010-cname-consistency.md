@@ -75,3 +75,4 @@ Issues #1 and #4 were already resolved during plan #007 (docker-compose migratio
 ### Rollback
 
 All changes are idempotent DNS + task restructuring. Revert the commit to restore inline registration and hardcoded hostname.
+

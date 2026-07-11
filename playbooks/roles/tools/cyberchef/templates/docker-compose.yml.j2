@@ -5,6 +5,7 @@ services:
     restart: unless-stopped
     volumes:
       - /etc/localtime:/etc/localtime:ro
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
     labels:
       traefik.enable: "true"
       traefik.http.routers.cyberchef.rule: "Host(`{{ cyberchef_cname }}.{{ lan_domain }}`)"

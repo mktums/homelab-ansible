@@ -75,3 +75,4 @@ Implemented as part of plan #001 role refactoring. DNS migrated from `qbit1.lan`
 ## Rollback
 
 Each change is a simple text substitution — revert the CNAME/rule back to lab_index-based and restore the inventory lines if anything breaks.
+

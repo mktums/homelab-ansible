@@ -13,6 +13,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - "{{ dockhand_agent_stacks_dir }}:{{ dockhand_agent_stacks_dir }}"
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
     environment:
       PORT: "{{ dockhand_agent_port }}"
       STACKS_DIR: "{{ dockhand_agent_stacks_dir }}"

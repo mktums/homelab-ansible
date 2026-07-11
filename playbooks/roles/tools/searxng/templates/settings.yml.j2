@@ -1,0 +1,24 @@
+---
+use_default_settings: true
+
+search:
+  safe_search: {{ searxng_safe_search }}
+  autocomplete: "{{ searxng_autocomplete }}"
+  favicon_resolver: "{{ searxng_favicon_resolver }}"
+  formats:
+{% for fmt in searxng_formats %}
+    - {{ fmt }}
+{% endfor %}
+
+server:
+  public_instance: {{ searxng_public_instance | lower }}
+  method: "{{ searxng_method }}"
+
+ui:
+  center_alignment: true
+  default_theme: {{ searxng_default_theme }}
+  theme_args:
+    simple_style: {{ searxng_simple_style }}
+
+outgoing:
+  request_timeout: {{ searxng_request_timeout }}

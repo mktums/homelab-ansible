@@ -71,3 +71,4 @@ Tuned conservatively — lab1 also runs 2 Postgres instances, Traefik, kopia_age
 ## Post-deploy
 
 After first deploy, create admin account via `https://photos.{{ lan_domain }}` (Immich shows onboarding screen). No `[POST-DEPLOY]` secrets needed — admin is created through the web UI.
+

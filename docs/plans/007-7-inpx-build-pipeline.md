@@ -139,3 +139,4 @@ curl -s http://inpx.lan_domain:{{ inpx_web_port }}  # or through traefik if prox
 ## Rollback
 
 Revert role files, run service playbook. Inpx-web data dir is bind mount — survives deployment method change. Built image remains in local registry until explicitly removed (`docker rmi`). Old docker_container task pulls from same local image.
+

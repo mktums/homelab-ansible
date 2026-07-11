@@ -1,0 +1,35 @@
+---
+services:
+  searxng:
+    image: "{{ searxng_image_name }}:{{ searxng_image_tag }}"
+    restart: unless-stopped
+    volumes:
+      - {{ searxng_opt_dir }}/settings.yml:/etc/searxng/settings.yml:ro
+      - {{ searxng_opt_dir }}/favicons.toml:/etc/searxng/favicons.toml:ro
+      - searxng-cache:/var/cache/searxng
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+    environment:
+      - SEARXNG_SECRET="{{ vault_searxng_secret }}"
+      - SEARXNG_BASE_URL=https://{{ searxng_cname }}.{{ lan_domain }}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://localhost:{{ searxng_container_port }}/config"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.searxng.rule: "Host(`{{ searxng_cname }}.{{ lan_domain }}`)"
+      traefik.http.routers.searxng.entrypoints: "websecure"
+      traefik.http.routers.searxng.tls: "true"
+      traefik.http.routers.searxng.tls.certresolver: "step-ca"
+      traefik.http.services.searxng.loadbalancer.server.port: "{{ searxng_container_port }}"
+      homepage.group: "Apps"
+      homepage.name: "SearXNG"
+      homepage.icon: "sh-searxng"
+      homepage.href: "https://{{ searxng_cname }}.{{ lan_domain }}"
+      homepage.description: "Privacy-respecting metasearch engine"
+
+volumes:
+  searxng-cache:

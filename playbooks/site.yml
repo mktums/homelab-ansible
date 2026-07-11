@@ -128,7 +128,7 @@
 
     # ── Layer 5: Tools ─────────────────────────────────────────────────
     # Utility and admin interfaces. Stateless or lightly stateful tools.
-    # Roles: tools/cyberchef, tools/it_tools, tools/dbgate
+    # Roles: tools/cyberchef, tools/it_tools, tools/dbgate, tools/searxng
     - role: tools/cyberchef
       tags: [cyberchef, layer_tools]
       when: inventory_hostname in groups.get('cyberchef_hosts', [])
@@ -140,6 +140,10 @@
     - role: tools/dbgate
       tags: [dbgate, layer_tools]
       when: inventory_hostname in groups.get('dbgate_hosts', [])
+
+    - role: tools/searxng
+      tags: [searxng, layer_tools]
+      when: inventory_hostname in groups.get('searxng_hosts', [])
 
     # ── Layer 6: Home ──────────────────────────────────────────────────
     # User-facing home services. Passwords, downloads, media, bookmarks, etc.
@@ -165,15 +169,15 @@
       tags: [immich, layer_home]
       when: inventory_hostname in groups.get('immich_hosts', [])
 
-    - role: home/jellyfin
-      tags: [jellyfin, layer_home]
-      when: inventory_hostname in groups.get('jellyfin_hosts', [])
-
     - role: home/homepage
       tags: [homepage, layer_home]
       when: inventory_hostname in groups.get('homepage_hosts', [])
 
-    # ── Arr-Stack (disabled: indexers blocked by DPI, APIs return 429) ────
+    - role: home/jellyfin
+      tags: [jellyfin, layer_home]
+      when: inventory_hostname in groups.get('jellyfin_hosts', [])
+
+    # ── Arr-Stack (disabled: indexers return 403, Seerr setup broken for Jellyfin) ──
     # - role: home/arr_stack
     #   tags: [arr_stack, layer_home]
     #   when: inventory_hostname in groups.get('arr_stack_hosts', [])

@@ -11,6 +11,7 @@ services:
       - "{{ beszel_agent_data_dir }}:/var/lib/beszel-agent"
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /etc/localtime:/etc/localtime:ro
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
 {% for vol in beszel_extra_volumes | default([]) %}
       - "{{ vol }}"
 {% endfor %}

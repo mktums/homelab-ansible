@@ -1,0 +1,9 @@
+---
+ansible_ssh_pass: "{{ vault_router_ssh_pass }}"
+ansible_connection: ssh
+ansible_port: 22
+ansible_ssh_pipelining: false
+ansible_transfer_method: piped
+ansible_ssh_use_tty: false
+ansible_remote_tmp: /tmp/.ansible
+ansible_python_interpreter: none

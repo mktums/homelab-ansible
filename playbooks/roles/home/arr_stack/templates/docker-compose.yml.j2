@@ -20,6 +20,11 @@ services:
       traefik.http.routers.radarr.tls: "true"
       traefik.http.routers.radarr.tls.certresolver: "step-ca"
       traefik.http.services.radarr.loadbalancer.server.port: "7878"
+      homepage.group: "Media"
+      homepage.name: "Radarr"
+      homepage.icon: "sh-radarr"
+      homepage.href: "https://{{ arr_radarr_cname }}.{{ lan_domain }}"
+      homepage.description: "Movie manager"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null --timeout=3 --no-check-certificate http://localhost:7878/ || exit 1"]
       start_period: 30s
@@ -48,6 +53,11 @@ services:
       traefik.http.routers.sonarr.tls: "true"
       traefik.http.routers.sonarr.tls.certresolver: "step-ca"
       traefik.http.services.sonarr.loadbalancer.server.port: "8989"
+      homepage.group: "Media"
+      homepage.name: "Sonarr"
+      homepage.icon: "sh-sonarr"
+      homepage.href: "https://{{ arr_sonarr_cname }}.{{ lan_domain }}"
+      homepage.description: "TV show manager"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null --timeout=3 --no-check-certificate http://localhost:8989/ || exit 1"]
       start_period: 30s
@@ -75,6 +85,11 @@ services:
       traefik.http.routers.prowlarr.tls: "true"
       traefik.http.routers.prowlarr.tls.certresolver: "step-ca"
       traefik.http.services.prowlarr.loadbalancer.server.port: "9696"
+      homepage.group: "Media"
+      homepage.name: "Prowlarr"
+      homepage.icon: "sh-prowlarr"
+      homepage.href: "https://{{ arr_prowlarr_cname }}.{{ lan_domain }}"
+      homepage.description: "Indexer manager"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null --timeout=3 --no-check-certificate http://localhost:9696/ || exit 1"]
       start_period: 30s
@@ -103,6 +118,11 @@ services:
       traefik.http.routers.lidarr.tls: "true"
       traefik.http.routers.lidarr.tls.certresolver: "step-ca"
       traefik.http.services.lidarr.loadbalancer.server.port: "8686"
+      homepage.group: "Media"
+      homepage.name: "Lidarr"
+      homepage.icon: "sh-lidarr"
+      homepage.href: "https://{{ arr_lidarr_cname }}.{{ lan_domain }}"
+      homepage.description: "Music manager"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null --timeout=3 --no-check-certificate http://localhost:8686/ || exit 1"]
       start_period: 30s
@@ -130,6 +150,11 @@ services:
       traefik.http.routers.bazarr.tls: "true"
       traefik.http.routers.bazarr.tls.certresolver: "step-ca"
       traefik.http.services.bazarr.loadbalancer.server.port: "6767"
+      homepage.group: "Media"
+      homepage.name: "Bazarr"
+      homepage.icon: "sh-bazarr"
+      homepage.href: "https://{{ arr_bazarr_cname }}.{{ lan_domain }}"
+      homepage.description: "Subtitle manager"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null --timeout=3 --no-check-certificate http://localhost:6767/ || exit 1"]
       start_period: 30s
@@ -146,6 +171,7 @@ services:
       TZ: "{{ timezone }}"
     volumes:
       - "{{ arr_stack_data_dir }}/seerr:/app/config"
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
     ports:
       - "{{ arr_seerr_port }}:5055"
     labels:
@@ -155,6 +181,11 @@ services:
       traefik.http.routers.seerr.tls: "true"
       traefik.http.routers.seerr.tls.certresolver: "step-ca"
       traefik.http.services.seerr.loadbalancer.server.port: "5055"
+      homepage.group: "Media"
+      homepage.name: "Seerr"
+      homepage.icon: "sh-seerr"
+      homepage.href: "https://{{ arr_seerr_cname }}.{{ lan_domain }}"
+      homepage.description: "Media requests"
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/settings/public || exit 1"]
       start_period: 20s

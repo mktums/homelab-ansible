@@ -208,3 +208,4 @@ kopia restore <snapshot-id> --destination=/tmp/restore-target
 ```
 
 Useful for cross-service recovery or when service-specific credentials are lost.
+

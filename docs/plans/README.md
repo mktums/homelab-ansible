@@ -12,6 +12,15 @@ Each file describes a single change or refactoring effort: the motivation, affec
 | Medium | 4-8 files, some interdependencies, moderate testing needed |
 | Hard   | Requires research, new infrastructure, or high risk of breaking existing services |
 
+## Meta plans
+
+Meta plans are living documents — collections of ideas, not implementation specs.
+
+| # | Priority | Plan | Difficulty | Status |
+|---|----------|------|------------|--------|
+| meta-001 | — | [R&D: Interesting projects](meta-001-research-projects.md) | — | 📋 Living |
+| meta-002 | — | [Interesting services](meta-002-interesting-services.md) | — | 📋 Living |
+
 ## Plans
 
 | # | Priority | Plan | Difficulty | Status |
@@ -36,3 +45,6 @@ Each file describes a single change or refactoring effort: the motivation, affec
 | 15 | Normal | [Add Immich](015-add-immich.md) | Medium | ✅ Done (2026-06-21) |
 | 16 | High | [DevOps audit — 41 issues](016-devops-audit.md) | Hard | ✅ Done (2026-07-02) |
 | 17 | Normal | [Restructure roles into 7-layer model](017-restructure-7-layers.md) | Hard | ✅ Done (2026-07-05) |
+| 18 | Normal | [Add SearXNG metasearch engine](018-add-searxng.md) | Easy | ✅ Done (2026-07-09) |
+| 20 | Low | [R&D — universal compose template for common blocks](020-universal-compose-template.md) | Medium | 📋 Planned |
+

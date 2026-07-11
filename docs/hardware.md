@@ -56,3 +56,4 @@
 - Intel Core i3 2330M
 - Intel Celeron B830
 - Kingston KC3000 1Tb
+

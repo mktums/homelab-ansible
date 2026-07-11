@@ -1,3 +1,4 @@
 ---
 dependencies:
   - role: shared/traefik
+  - role: tools/searxng

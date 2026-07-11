@@ -1,0 +1,27 @@
+# SearXNG defaults
+
+# Image
+searxng_image_name: "ghcr.io/searxng/searxng"
+searxng_image_tag: "latest"
+
+# Paths
+searxng_opt_dir: "{{ ansible_opt_base }}/searxng"
+
+# CNAME subdomain (without .{{ lan_domain }})
+searxng_cname: "search"
+
+# Container port
+searxng_container_port: 8080
+
+# Settings overrides (merged with use_default_settings)
+searxng_favicon_resolver: "duckduckgo"
+searxng_method: "GET"
+searxng_autocomplete: "duckduckgo"
+searxng_safe_search: 0
+searxng_public_instance: false
+searxng_default_theme: "simple"
+searxng_simple_style: "auto"
+searxng_formats:
+  - html
+  - json
+searxng_request_timeout: 5.0

@@ -6,6 +6,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - "{{ homepage_config_dir }}:/app/config"
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
     environment:
       HOMEPAGE_ALLOWED_HOSTS: "{{ homepage_cname }}.{{ lan_domain }}"
       LOG_TARGETS: "stdout"

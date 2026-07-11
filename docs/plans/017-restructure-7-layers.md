@@ -158,3 +158,4 @@ Run `ansible-playbook --list-tasks playbooks/site.yml` manually to confirm all r
 | `playbooks/roles/dev/` | **new** — empty directory |
 | `playbooks/roles/docker_services/` | **removed** |
 | `README.md` | path reference update |
+

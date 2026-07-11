@@ -9,6 +9,7 @@ services:
       - "{{ immich_upload_dir }}:/data"
       - "{{ immich_opt_dir }}/immich.json:{{ immich_config_file }}"
       - /etc/localtime:/etc/localtime:ro
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
     labels:
       traefik.enable: "true"
       traefik.http.routers.immich.rule: "Host(`{{ immich_cname }}.{{ lan_domain }}`)"
@@ -16,6 +17,11 @@ services:
       traefik.http.routers.immich.tls: "true"
       traefik.http.routers.immich.tls.certresolver: "step-ca"
       traefik.http.services.immich.loadbalancer.server.port: "2283"
+      homepage.group: "Apps"
+      homepage.name: "Immich"
+      homepage.icon: "sh-immich"
+      homepage.href: "https://{{ immich_cname }}.{{ lan_domain }}"
+      homepage.description: "Photo and video backup solution"
     deploy:
       resources:
         reservations:

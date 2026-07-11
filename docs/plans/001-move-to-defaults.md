@@ -97,3 +97,4 @@ All 9 roles refactored. Additional fixes discovered during implementation:
 ## Rollback
 
 Each change is a simple variable move — defaults can be removed and values restored to inventory if anything breaks. No structural changes, no logic changes.
+

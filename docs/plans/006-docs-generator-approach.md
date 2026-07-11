@@ -20,3 +20,4 @@ Core challenge: **single source of truth** for both docs and role config. Option
 - [ ] If A or C: define metadata var schema and conventions
 - [ ] If B or C: decide what regex patterns to use against templates
 - [ ] Implement `playbooks/docs.yml` with sub-plays for hw collection, service docs generation
+

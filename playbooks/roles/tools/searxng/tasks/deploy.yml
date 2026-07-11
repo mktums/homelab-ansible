@@ -1,0 +1,33 @@
+---
+- name: Create SearXNG directories
+  ansible.builtin.file:
+    path: "{{ searxng_opt_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Render settings file
+  ansible.builtin.template:
+    src: settings.yml.j2
+    dest: "{{ searxng_opt_dir }}/settings.yml"
+    mode: "0644"
+  notify: Restart SearXNG
+
+- name: Render favicon settings file
+  ansible.builtin.template:
+    src: favicons.toml.j2
+    dest: "{{ searxng_opt_dir }}/favicons.toml"
+    mode: "0644"
+  notify: Restart SearXNG
+
+- name: Render compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ searxng_opt_dir }}/docker-compose.yml"
+    mode: "0644"
+
+- name: Deploy SearXNG stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ searxng_opt_dir }}"
+    state: present
+    pull: missing
+  notify: Restart SearXNG

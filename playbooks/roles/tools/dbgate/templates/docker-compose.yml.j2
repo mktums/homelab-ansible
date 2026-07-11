@@ -8,6 +8,7 @@ services:
     volumes:
       - "{{ dbgate_data_dir }}:/root/.dbgate"
       - /etc/localtime:/etc/localtime:ro
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
     labels:
       traefik.enable: "true"
       traefik.http.routers.dbgate.rule: "Host(`{{ dbgate_cname }}.{{ lan_domain }}`)"
@@ -15,7 +16,7 @@ services:
       traefik.http.routers.dbgate.tls: "true"
       traefik.http.routers.dbgate.tls.certresolver: "step-ca"
       traefik.http.services.dbgate.loadbalancer.server.port: "3000"
-      homepage.group: "Apps"
+      homepage.group: "Tools"
       homepage.name: "DBGate"
       homepage.icon: "sh-dbgate"
       homepage.href: "https://{{ dbgate_cname }}.{{ lan_domain }}"

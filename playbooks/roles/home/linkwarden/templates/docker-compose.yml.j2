@@ -7,6 +7,7 @@ services:
     volumes:
       - "{{ linkwarden_data_dir }}/data:/data/data"
       - /etc/localtime:/etc/localtime:ro
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
     labels:
       traefik.enable: "true"
       traefik.http.routers.linkwarden.rule: "Host(`{{ linkwarden_cname }}.{{ lan_domain }}`)"

@@ -18,6 +18,7 @@ services:
       - "{{ inpx_web_data_dir }}/inpx-web:/data/inpx-web"
       - "{{ downloads_dir }}:/downloads:ro"
       - /etc/localtime:/etc/localtime:ro
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
     environment:
       LIB_DOMAIN: "{{ inpx_web_cname }}.{{ lan_domain }}"
     labels:
@@ -48,6 +49,7 @@ services:
     volumes:
       - "{{ inpx_web_data_dir }}/liberama:/data/liberama"
       - /etc/localtime:/etc/localtime:ro
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
     environment:
       LIB_DOMAIN: "{{ inpx_web_cname }}.{{ lan_domain }}"
     labels:

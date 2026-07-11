@@ -124,3 +124,4 @@ Medium. Rewrite `kopia_server` role (Docker → native), move to `os_services` l
 
 - **Built-in scheduler:** Kopia's built-in scheduler doesn't work with `repository connect server` (read-only mode). Systemd timers remain the scheduling mechanism.
 - **Server-to-server on lab2:** Running `kopia server start` on lab2 connecting to lab1 was explored but rejected — adds complexity without benefit. Lab2 stays as an agent.
+

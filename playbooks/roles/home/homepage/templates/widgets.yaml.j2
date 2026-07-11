@@ -2,9 +2,10 @@
 # For configuration options and examples, please see:
 # https://gethomepage.dev/configs/info-widgets/
 - search:
-    provider: [google, duckduckgo] #, bing, baidu, brave or custom
+    provider: [custom, google, duckduckgo] #, bing, baidu, brave or custom
+    url: "https://{{ searxng_cname }}.{{ lan_domain }}/search?q="
     focus: true # Optional, will set focus to the search bar on page load
-    showSearchSuggestions: true # Optional, will show search suggestions. Defaults to false
+    showSearchSuggestions: false # Optional, will show search suggestions. Defaults to false
     target: _blank # One of _self, _blank, _parent or _top
 
 - openmeteo:
