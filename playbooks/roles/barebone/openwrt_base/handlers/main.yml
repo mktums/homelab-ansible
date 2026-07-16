@@ -6,9 +6,10 @@
   notify: Reload system service
 
 - name: Reload system service
-  community.openwrt.command:
-    cmd: /etc/init.d/system reload
-  changed_when: true
+  community.openwrt.service:
+    name: system
+    state: reloaded
+  changed_when: false
 
 - name: Commit and restart dnsmasq
   community.openwrt.uci:
@@ -17,9 +18,10 @@
   notify: Restart dnsmasq service
 
 - name: Restart dnsmasq service
-  community.openwrt.command:
-    cmd: /etc/init.d/dnsmasq restart
-  changed_when: true
+  community.openwrt.service:
+    name: dnsmasq
+    state: restarted
+  changed_when: false
 
 - name: Commit and reload firewall
   community.openwrt.uci:
@@ -28,9 +30,10 @@
   notify: Reload firewall service
 
 - name: Reload firewall service
-  community.openwrt.command:
-    cmd: /etc/init.d/firewall reload
-  changed_when: true
+  community.openwrt.service:
+    name: firewall
+    state: reloaded
+  changed_when: false
 
 - name: Commit and reload wifi
   community.openwrt.uci:
@@ -41,7 +44,7 @@
 - name: Reload wifi service
   community.openwrt.command:
     cmd: wifi up
-  changed_when: true
+  changed_when: false
 
 - name: Commit and restart network
   community.openwrt.uci:
@@ -50,6 +53,19 @@
   notify: Restart network service
 
 - name: Restart network service
-  community.openwrt.command:
-    cmd: /etc/init.d/network restart
-  changed_when: true
+  community.openwrt.service:
+    name: network
+    state: restarted
+  changed_when: false
+
+- name: Commit and restart unbound
+  community.openwrt.uci:
+    command: commit
+    key: unbound
+  notify: Restart unbound service
+
+- name: Restart unbound service
+  community.openwrt.service:
+    name: unbound
+    state: restarted
+  changed_when: false

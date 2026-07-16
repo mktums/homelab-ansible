@@ -15,9 +15,15 @@
         - "{{ step_path }}/secrets"
 
     - name: Create step-ca directories
-      community.openwrt.command:
-        cmd: mkdir -p {{ step_path }}/config {{ step_path }}/certs {{ step_path }}/secrets {{ step_path }}/db
-      changed_when: false
+      community.openwrt.file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ step_path }}/config"
+        - "{{ step_path }}/certs"
+        - "{{ step_path }}/secrets"
+        - "{{ step_path }}/db"
 
     - name: Write CA password file
       community.openwrt.copy:
@@ -154,14 +160,13 @@
     - _jwk_in_vault
 
 - name: Read JWK public key
-  community.openwrt.command:
-    cmd: cat {{ step_path }}/secrets/jwk_pub.json
-  register: jwk_key_output
-  changed_when: false
+  community.openwrt.slurp:
+    src: "{{ step_path }}/secrets/jwk_pub.json"
+  register: jwk_key_slurp
 
 - name: Set JWK public key fact
   ansible.builtin.set_fact:
-    jwk_public_key: "{{ jwk_key_output.stdout | from_json }}"
+    jwk_public_key: "{{ jwk_key_slurp.content | b64decode | from_json }}"
 
 - name: Render ca.json
   community.openwrt.template:
@@ -179,9 +184,12 @@
     mode: '0600'
 
 - name: Set ownership on step-ca data
-  community.openwrt.command:
-    cmd: chown -R step:step {{ step_path }}
-  changed_when: false
+  community.openwrt.file:
+    path: "{{ step_path }}"
+    state: directory
+    owner: step
+    group: step
+    recurse: true
 
 - name: Deploy step-ca init script
   community.openwrt.template:
@@ -190,9 +198,10 @@
     mode: '0755'
   register: _init_script_deployed
 
-- name: Force restart step-ca if configuration changed
+- name: Ensure step-ca service is enabled and running
   community.openwrt.service:
     name: step-ca
+    enabled: true
     state: restarted
   when: _ca_json_rendered.changed or _init_script_deployed.changed
 

@@ -13,10 +13,6 @@
       value: "0"
     - key: network.lan.ip6table
       value: "0"
-    - key: dhcp.lan.dhcpv6
-      value: disabled
-    - key: dhcp.lan.ra
-      value: disabled
   when: lan_ipv6_disabled | default(false)
   notify: Commit and restart network
 
@@ -35,13 +31,5 @@
     replace: true
   notify: Commit and restart network
 
-- name: Commit and reload network
-  community.openwrt.uci:
-    command: commit
-    key: network
-  changed_when: true
-
-- name: Reload network
-  community.openwrt.command:
-    cmd: /etc/init.d/network reload
-  changed_when: true
+- name: Flush network handlers before firewall
+  ansible.builtin.meta: flush_handlers

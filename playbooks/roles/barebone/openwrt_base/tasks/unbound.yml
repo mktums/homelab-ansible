@@ -1,7 +1,6 @@
 ---
 - name: Install unbound
-  action: "community.openwrt.{{ openwrt_package_manager }}"
-  args:
+  community.openwrt.apk:
     name: "unbound-daemon,unbound-anchor,luci-app-unbound"
     state: present
 
@@ -16,6 +15,7 @@
     command: add_list
     key: dhcp.@dnsmasq[0].server
     value: "127.0.0.1#5335"
+    unique: true
   notify: Commit and restart dnsmasq
 
 - name: Configure dnsmasq for unbound upstream
@@ -90,10 +90,10 @@
   notify: Commit and restart network
 
 - name: Enable and start unbound service
-  community.openwrt.command:
-    cmd: "sh -c '/etc/init.d/unbound enabled || /etc/init.d/unbound enable; /etc/init.d/unbound running || /etc/init.d/unbound start'"
-  register: _unbound
-  changed_when: "'running' not in _unbound.stdout"
+  community.openwrt.service:
+    name: unbound
+    state: started
+    enabled: true
 
 - name: Flush handlers before verifying unbound
   ansible.builtin.meta: flush_handlers

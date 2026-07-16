@@ -2,14 +2,14 @@
 # Rename default anonymous zones to named sections so we can reference them explicitly.
 # OpenWrt defaults: @zone[0]=lan, @zone[1]=wan — we rename them once, idempotently.
 - name: Rename default firewall zones to named sections
-  community.openwrt.command:
-    cmd: >-
-      sh -c 'uci show firewall.{{ item.dst }} > /dev/null 2>&1 ||
-      uci rename firewall.{{ item.src }}={{ item.dst }}'
+  community.openwrt.uci:
+    command: rename
+    key: "firewall.{{ item.src }}"
+    name: "{{ item.dst }}"
   loop:
     - { src: '@zone[0]', dst: lan_zone }
     - { src: '@zone[1]', dst: wan_zone }
-  changed_when: false
+  failed_when: false
 
 - name: Configure LAN firewall zone
   community.openwrt.uci:
@@ -116,8 +116,11 @@
 
 - name: Configure port forwards
   community.openwrt.uci:
-    command: set
-    key: "firewall.{{ item.name }}_fwd"
+    command: section
+    config: firewall
+    type: redirect
+    name: "{{ item.name }}_fwd"
+    find: {}
     value:
       name: "{{ item.name }}"
       target: DNAT
@@ -127,6 +130,7 @@
       dest: lan
       dest_ip: "{{ item.dest_ip }}"
       dest_port: "{{ item.dest_port }}"
+    replace: true
   loop: "{{ port_forwards }}"
   loop_control:
     label: "{{ item.name }}"

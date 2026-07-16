@@ -1,4 +1,17 @@
 ---
+- name: Disable IPv6 DHCP
+  community.openwrt.uci:
+    command: set
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  loop:
+    - key: dhcp.lan.dhcpv6
+      value: disabled
+    - key: dhcp.lan.ra
+      value: disabled
+  when: lan_ipv6_disabled | default(false)
+  notify: Commit and restart dnsmasq
+
 - name: Configure LAN DHCP
   community.openwrt.uci:
     command: set

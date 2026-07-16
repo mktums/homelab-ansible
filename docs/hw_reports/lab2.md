@@ -1,6 +1,6 @@
 # Hardware Report: lab2
 
-Generated: 2026-07-03 21:47:04 UTC
+Generated: 2026-07-16 05:01:51 UTC
 
 ## System & CPU
 
@@ -42,7 +42,7 @@ Generated: 2026-07-03 21:47:04 UTC
 | Device | Type | Model | Size | Used | Health | Notes |
 |:---|:---|:---|:---|:---|:---|:---|
 | /dev/sda | HDD | WDC WD30EFRX-68AX9N0 | 2.73 TB | 1.65 TB (62%) | PASSED | Offline_Uncorrectable 2 |
-| /dev/sdb | SSD | Samsung SSD 850 EVO 250GB | 232.89 GB | 17.68 GB (9%) | PASSED | Wear: 7% |
+| /dev/sdb | SSD | Samsung SSD 850 EVO 250GB | 232.89 GB | 19.31 GB (9%) | PASSED | Wear: 7% |
 
 ### RAID Arrays
 

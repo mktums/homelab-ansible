@@ -1,5 +1,6 @@
 ---
 - name: Restart step-ca
-  community.openwrt.command:
-    cmd: /etc/init.d/step-ca restart
-  changed_when: true
+  community.openwrt.service:
+    name: step-ca
+    state: restarted
+  changed_when: false
