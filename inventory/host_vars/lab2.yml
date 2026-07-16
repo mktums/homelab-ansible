@@ -3,27 +3,8 @@ system_optimize_mounts:
   - /
   - /mnt/data
 
-# Beszel agent configuration for lab2
-beszel_smart_devices:
-  - /dev/sda:/dev/sda
-  - /dev/sdb:/dev/sdb
-beszel_smart_cap_add:
-  - SYS_RAWIO
-  - SYS_ADMIN
-beszel_extra_volumes:
-  - /mnt/data/.beszel:/extra-filesystems/sda__data:ro
-
 # ── Kopia backup sources ────────────────────────────────────────────────
 backup_sources:
-  dockhand_agent:
-    hostname: server
-    paths:
-      "{{ dockhand_agent_data_dir }}":
-        retention:
-          keep_latest: 10
-          keep_daily: 7
-          keep_monthly: 6
-
   dockhand:
     hostname: server
     paths:

@@ -5,6 +5,8 @@
     key: "{{ item.key }}"
     value: "{{ item.value }}"
   loop:
-    - { key: "system.@system[0].timezone", value: "{{ openwrt_timezone }}" }
-    - { key: "system.@system[0].zonename", value: "{{ timezone }}" }
+    - key: "system.@system[0].timezone"
+      value: "{{ openwrt_timezone }}"
+    - key: "system.@system[0].zonename"
+      value: "{{ timezone }}"
   notify: Commit and reload system

@@ -9,7 +9,6 @@ services:
       timeout: 5s
       retries: 3
     ports:
-      - "{{ qbittorrent_web_port }}:8080"
       - "{{ qbittorrent_torrent_port }}:6881"
       - "{{ qbittorrent_torrent_port }}:6881/udp"
     environment:

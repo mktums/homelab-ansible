@@ -7,6 +7,9 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - "{{ homepage_config_dir }}:/app/config"
       - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+      - /usr/local/share/ca-certificates/step-ca-root.crt:/app/config/tls/ca.pem:ro
+      - /etc/docker/tls/server-cert.pem:/app/config/tls/cert.pem:ro
+      - /etc/docker/tls/server-key.pem:/app/config/tls/key.pem:ro
     environment:
       HOMEPAGE_ALLOWED_HOSTS: "{{ homepage_cname }}.{{ lan_domain }}"
       LOG_TARGETS: "stdout"

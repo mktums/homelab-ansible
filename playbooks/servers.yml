@@ -1,0 +1,78 @@
+---
+# All server roles in one play — ordered by layer, deduplicated by Ansible.
+# Tags allow filtering: `just tags cyberchef` or `just tags traefik`
+- name: Deploy homelab services
+  hosts: servers
+  gather_facts: true
+  become: true
+
+  roles:
+    # ── Layer 1: Barebone ──────────────────────────────────────────────
+    - role: barebone/server_base
+      tags: [server_base]
+
+    # ── Layer 2: OS Services ───────────────────────────────────────────
+    - role: os_services/step_cli
+      tags: [step_cli]
+    - role: os_services/docker
+      tags: [docker]
+      when: inventory_hostname in groups.get('docker_hosts', [])
+    - role: os_services/kopia_server
+      tags: [kopia_server]
+      when: inventory_hostname in groups.get('kopia_server_hosts', [])
+    - role: os_services/kopia_agent
+      tags: [kopia_agent]
+      when: inventory_hostname in groups.get('kopia_agent_hosts', [])
+
+    # ── Layer 3: Shared ────────────────────────────────────────────────
+    - role: shared/meilisearch
+      tags: [meilisearch]
+      when: inventory_hostname in groups.get('meilisearch_hosts', [])
+    - role: shared/postgres
+      tags: [postgres]
+      when: inventory_hostname in groups.get('postgres_hosts', [])
+    - role: shared/traefik
+      tags: [traefik]
+      when: inventory_hostname in groups.get('traefik_hosts', [])
+
+    # ── Layer 4: Platform ──────────────────────────────────────────────
+    - role: platform/dockhand
+      tags: [dockhand]
+      when: inventory_hostname in groups.get('dockhand_hosts', [])
+
+    # ── Layer 5: Tools ─────────────────────────────────────────────────
+    - role: tools/cyberchef
+      tags: [cyberchef]
+      when: inventory_hostname in groups.get('cyberchef_hosts', [])
+    - role: tools/it_tools
+      tags: [it_tools]
+      when: inventory_hostname in groups.get('it_tools_hosts', [])
+    - role: tools/dbgate
+      tags: [dbgate]
+      when: inventory_hostname in groups.get('dbgate_hosts', [])
+    - role: tools/searxng
+      tags: [searxng]
+      when: inventory_hostname in groups.get('searxng_hosts', [])
+
+    # ── Layer 6: Home ──────────────────────────────────────────────────
+    - role: home/vaultwarden
+      tags: [vaultwarden]
+      when: inventory_hostname in groups.get('vaultwarden_hosts', [])
+    - role: home/qbittorrent
+      tags: [qbittorrent]
+      when: inventory_hostname in groups.get('qbittorrent_hosts', [])
+    - role: home/inpx_web
+      tags: [inpx_web]
+      when: inventory_hostname in groups.get('inpx_web_hosts', [])
+    - role: home/linkwarden
+      tags: [linkwarden]
+      when: inventory_hostname in groups.get('linkwarden_hosts', [])
+    - role: home/immich
+      tags: [immich]
+      when: inventory_hostname in groups.get('immich_hosts', [])
+    - role: home/homepage
+      tags: [homepage]
+      when: inventory_hostname in groups.get('homepage_hosts', [])
+    - role: home/jellyfin
+      tags: [jellyfin]
+      when: inventory_hostname in groups.get('jellyfin_hosts', [])

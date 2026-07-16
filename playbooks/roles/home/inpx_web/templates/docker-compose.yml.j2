@@ -12,8 +12,6 @@ services:
       interval: 60s
       timeout: 5s
       retries: 3
-    ports:
-      - "{{ inpx_web_port }}:12380"
     volumes:
       - "{{ inpx_web_data_dir }}/inpx-web:/data/inpx-web"
       - "{{ downloads_dir }}:/downloads:ro"
@@ -44,8 +42,6 @@ services:
       interval: 60s
       timeout: 5s
       retries: 3
-    ports:
-      - "{{ inpx_web_liberama_port }}:44080"
     volumes:
       - "{{ inpx_web_data_dir }}/liberama:/data/liberama"
       - /etc/localtime:/etc/localtime:ro

@@ -1,8 +1,0 @@
----
-- name: Deploy beszel hub (lab1 only)
-  block:
-    - ansible.builtin.include_tasks: cname.yml
-    - ansible.builtin.include_tasks: hub.yml
-    - ansible.builtin.include_tasks: init.yml
-    - ansible.builtin.include_tasks: register.yml
-  when: inventory_hostname in groups.get('beszel_hosts', [])

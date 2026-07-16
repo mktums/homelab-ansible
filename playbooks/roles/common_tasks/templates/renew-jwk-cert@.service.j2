@@ -1,0 +1,9 @@
+[Unit]
+Description=JWK certificate renewal for %I
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/ansible/scripts/renew-jwk-cert.sh {{ renewal_domain }} {{ renewal_cert }} {{ renewal_key }} {{ renewal_service }} {{ renewal_ca_url }} {{ renewal_issuer }}
+Environment=HOME=/root

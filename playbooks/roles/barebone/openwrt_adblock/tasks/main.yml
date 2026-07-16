@@ -1,3 +1,0 @@
----
-- ansible.builtin.include_tasks: unbound.yml
-- ansible.builtin.include_tasks: adblock.yml

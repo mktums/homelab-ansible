@@ -1,3 +1,0 @@
----
-dependencies:
-  - role: os_services/kopia_server

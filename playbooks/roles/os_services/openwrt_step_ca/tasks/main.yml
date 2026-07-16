@@ -2,3 +2,9 @@
 - ansible.builtin.include_tasks: cname.yml
 - ansible.builtin.include_tasks: deploy.yml
 - ansible.builtin.include_tasks: init.yml
+
+- name: Deploy CA install page
+  community.openwrt.copy:
+    src: ca-install.html
+    dest: /www/ca.html
+    mode: "0644"

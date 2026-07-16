@@ -9,107 +9,44 @@
   failed_when: false
   notify: Commit and reload wifi
 
-- name: Set country code
+- name: Configure wifi radios
   community.openwrt.uci:
-    command: set
-    key: "wireless.{{ item.name }}.country"
-    value: "{{ wifi_country }}"
+    command: section
+    config: wireless
+    type: wifi-device
+    name: "{{ item.name }}"
+    find: {}
+    value:
+      country: "{{ wifi_country }}"
+      band: "{{ item.band }}"
+      htmode: "{{ item.htmode }}"
+      channel: "{{ item.channel }}"
+      disabled: "0"
+    replace: true
   loop: "{{ wifi_radios }}"
+  loop_control:
+    label: "{{ item.name }}"
   notify: Commit and reload wifi
 
-- name: Set radio band
+- name: Configure wifi interfaces
   community.openwrt.uci:
-    command: set
-    key: "wireless.{{ item.name }}.band"
-    value: "{{ item.band }}"
-  loop: "{{ wifi_radios }}"
-  notify: Commit and reload wifi
-
-- name: Set radio htmode
-  community.openwrt.uci:
-    command: set
-    key: "wireless.{{ item.name }}.htmode"
-    value: "{{ item.htmode }}"
-  loop: "{{ wifi_radios }}"
-  notify: Commit and reload wifi
-
-- name: Set radio channel
-  community.openwrt.uci:
-    command: set
-    key: "wireless.{{ item.name }}.channel"
-    value: "{{ item.channel }}"
-  loop: "{{ wifi_radios }}"
-  notify: Commit and reload wifi
-
-- name: Enable radio
-  community.openwrt.uci:
-    command: set
-    key: "wireless.{{ item.name }}.disabled"
-    value: "0"
-  loop: "{{ wifi_radios }}"
-  notify: Commit and reload wifi
-
-- name: Create wifi-iface
-  community.openwrt.uci:
-    command: set
-    key: "wireless.{{ item.name }}"
-    value: wifi-iface
+    command: section
+    config: wireless
+    type: wifi-iface
+    name: "{{ item.name }}"
+    find:
+      device: "{{ item.radio }}"
+    value:
+      device: "{{ item.radio }}"
+      mode: ap
+      network: "{{ item.network }}"
+      ssid: "{{ item.ssid }}"
+      encryption: "{{ item.encryption }}"
+      key: "{{ item.password }}"
+      hidden: "{{ '1' if item.hidden else '0' }}"
+    replace: true
   loop: "{{ wifi_interfaces }}"
-  notify: Commit and reload wifi
-
-- name: Set wifi-iface device
-  community.openwrt.uci:
-    command: set
-    key: "wireless.{{ item.name }}.device"
-    value: "{{ item.radio }}"
-  loop: "{{ wifi_interfaces }}"
-  notify: Commit and reload wifi
-
-- name: Set wifi-iface mode
-  community.openwrt.uci:
-    command: set
-    key: "wireless.{{ item.name }}.mode"
-    value: ap
-  loop: "{{ wifi_interfaces }}"
-  notify: Commit and reload wifi
-
-- name: Set wifi-iface network
-  community.openwrt.uci:
-    command: set
-    key: "wireless.{{ item.name }}.network"
-    value: "{{ item.network }}"
-  loop: "{{ wifi_interfaces }}"
-  notify: Commit and reload wifi
-
-- name: Set wifi-iface SSID
-  community.openwrt.uci:
-    command: set
-    key: "wireless.{{ item.name }}.ssid"
-    value: "{{ item.ssid }}"
-  loop: "{{ wifi_interfaces }}"
-  notify: Commit and reload wifi
-
-- name: Set wifi-iface encryption
-  community.openwrt.uci:
-    command: set
-    key: "wireless.{{ item.name }}.encryption"
-    value: "{{ item.encryption }}"
-  loop: "{{ wifi_interfaces }}"
-  notify: Commit and reload wifi
-
-- name: Set wifi-iface password
-  community.openwrt.uci:
-    command: set
-    key: "wireless.{{ item.name }}.key"
-    value: "{{ item.password }}"
-  loop: "{{ wifi_interfaces }}"
+  loop_control:
+    label: "{{ item.name }}"
   no_log: true
-  notify: Commit and reload wifi
-
-- name: Set wifi-iface hidden
-  community.openwrt.uci:
-    command: set
-    key: "wireless.{{ item.name }}.hidden"
-    value: "{{ '1' if item.hidden else '0' }}"
-  loop: "{{ wifi_interfaces }}"
   notify: Commit and reload wifi

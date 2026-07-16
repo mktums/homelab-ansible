@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Install Root CA Certificate</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#0d1117;color:#c9d1d9;line-height:1.6;padding:2rem}
+.container{max-width:720px;margin:0 auto}
+h1{font-size:1.8rem;margin-bottom:1rem;color:#58a6ff}
+h2{font-size:1.2rem;margin:2rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid #30363d;color:#58a6ff}
+.lead{color:#8b949e;margin-bottom:2rem}
+.download{text-align:center;padding:2rem;margin:2rem 0;background:#161b22;border:1px solid #30363d;border-radius:8px}
+.download a{display:inline-block;padding:0.75rem 2rem;background:#238636;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:1.1rem}
+.download a:hover{background:#2ea043}
+.steps{counter-reset:step}
+.step{counter-increment:step;margin-bottom:1rem;padding-left:2.5rem;position:relative}
+.step::before{content:counter(step);position:absolute;left:0;top:0;width:1.8rem;height:1.8rem;background:#30363d;color:#58a6ff;border-radius:50%;text-align:center;line-height:1.8rem;font-size:0.85rem;font-weight:600}
+kbd{background:#161b22;border:1px solid #30363d;border-radius:3px;padding:0.1em 0.4em;font-size:0.9em;font-family:monospace}
+code{background:#161b22;padding:0.1em 0.4em;border-radius:3px;font-size:0.9em;display:inline-block}
+.note{background:#161b22;border-left:3px solid #58a6ff;padding:0.75rem 1rem;margin:1rem 0;border-radius:0 6px 6px 0;font-size:0.9rem}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Install Root CA Certificate</h1>
+<p class="lead">All HTTPS services in this network use certificates issued by our local CA. Install the root certificate to trust them in your browser and OS.</p>
+
+<div class="download">
+<a href="https://step-ca.lan:8443/roots.pem" download="root-ca.crt">Download Root CA Certificate</a>
+<p style="margin-top:1rem;font-size:0.85rem;color:#8b949e">File: <code>root-ca.crt</code> (PEM format)</p>
+</div>
+
+<h2>Windows</h2>
+<div class="steps">
+<div class="step">Double-click the downloaded <kbd>root-ca.crt</kbd> file</div>
+<div class="step">Click <kbd>Install Certificate</kbd></div>
+<div class="step">Select <kbd>Local Machine</kbd>, click Next</div>
+<div class="step">Select <kbd>Place all certificates in the following store</kbd></div>
+<div class="step">Click <kbd>Browse</kbd> and select <kbd>Trusted Root Certification Authorities</kbd></div>
+<div class="step">Click Next, then Finish</div>
+</div>
+
+<h2>macOS</h2>
+<div class="steps">
+<div class="step">Double-click the downloaded <kbd>root-ca.crt</kbd> file — it opens in Keychain Access</div>
+<div class="step">Double-click the certificate in Keychain Access</div>
+<div class="step">Expand the <kbd>Trust</kbd> section</div>
+<div class="step">Set <kbd>When using this certificate</kbd> to <kbd>Always Trust</kbd></div>
+<div class="step">Close the window (you'll be asked for your password)</div>
+</div>
+
+<h2>Linux</h2>
+<div class="steps">
+<div class="step">Open a terminal and run:</div>
+</div>
+<pre style="background:#161b22;padding:1rem;border-radius:6px;margin:0.5rem 0;overflow-x:auto"><code>sudo cp root-ca.crt /usr/local/share/ca-certificates/root-ca.crt
+sudo update-ca-certificates</code></pre>
+
+<h2>Android</h2>
+<div class="steps">
+<div class="step">Transfer <kbd>root-ca.crt</kbd> to your device</div>
+<div class="step">Go to <kbd>Settings</kbd> → <kbd>Security</kbd> → <kbd>Encryption & credentials</kbd></div>
+<div class="step">Tap <kbd>Install a certificate</kbd> → <kbd>CA certificate</kbd></div>
+<div class="step">Select the file and confirm</div>
+</div>
+<p class="note">On Android 7+, user-installed CAs are not trusted by apps unless the device is rooted. For app-level trust, use a custom ROM or FlashFire.</p>
+
+<h2>iOS / iPadOS</h2>
+<div class="steps">
+<div class="step">Send the <kbd>root-ca.crt</kbd> file to your device (email, AirDrop, etc.)</div>
+<div class="step">Open the file — a prompt appears to install the profile</div>
+<div class="step">Go to <kbd>Settings</kbd> → <kbd>Profile Installed</kbd> → <kbd>Install</kbd></div>
+<div class="step">Go to <kbd>Settings</kbd> → <kbd>General</kbd> → <kbd>About</kbd> → <kbd>Certificate Trust Settings</kbd></div>
+<div class="step">Enable trust for the installed certificate</div>
+</div>
+
+<h2>Chrome / Edge (disable DoH)</h2>
+<p class="note">Chrome and Edge bypass system DNS for <code>.lan</code> domains when "Secure DNS" is enabled. Disable it:</p>
+<div class="steps">
+<div class="step">Go to <kbd>Settings</kbd> → <kbd>Privacy and security</kbd> → <kbd>Security</kbd></div>
+<div class="step">Find <kbd>Use secure DNS</kbd> and turn it <kbd>Off</kbd></div>
+</div>
+</div>
+</body>
+</html>

@@ -1,59 +1,45 @@
 ---
-# IPv6 — configurable via lan_ipv6_disabled (default: false)
-- name: Disable IPv6 on WAN
+- name: Disable IPv6
   community.openwrt.uci:
     command: set
     key: "{{ item.key }}"
     value: "{{ item.value }}"
   loop:
-    - { key: network.wan6.disabled, value: "1" }
-    - { key: network.wan.ipv6,      value: "0" }
+    - key: network.wan6.disabled
+      value: "1"
+    - key: network.wan.ipv6
+      value: "0"
+    - key: network.lan.ip6assign
+      value: "0"
+    - key: network.lan.ip6table
+      value: "0"
+    - key: dhcp.lan.dhcpv6
+      value: disabled
+    - key: dhcp.lan.ra
+      value: disabled
   when: lan_ipv6_disabled | default(false)
+  notify: Commit and restart network
 
-- name: Disable IPv6 on LAN
+- name: Configure IoT interface
   community.openwrt.uci:
-    command: set
-    key: "{{ item.key }}"
-    value: "{{ item.value }}"
-  loop:
-    - { key: network.lan.ip6assign, value: "0" }
-    - { key: network.lan.ip6table,  value: "0" }
-  when: lan_ipv6_disabled | default(false)
+    command: section
+    config: network
+    type: interface
+    name: iot
+    find: {}
+    value:
+      proto: static
+      type: bridge
+      ipaddr: "{{ iot_ip }}"
+      netmask: "{{ iot_netmask }}"
+    replace: true
+  notify: Commit and restart network
 
-- name: Create IoT interface
-  community.openwrt.uci:
-    command: set
-    key: network.iot
-    value: interface
-
-- name: Set IoT protocol
-  community.openwrt.uci:
-    command: set
-    key: network.iot.proto
-    value: static
-
-- name: Set IoT device type to bridge
-  community.openwrt.uci:
-    command: set
-    key: network.iot.type
-    value: bridge
-
-- name: Set IoT IP
-  community.openwrt.uci:
-    command: set
-    key: network.iot.ipaddr
-    value: "{{ iot_ip }}"
-
-- name: Set IoT netmask
-  community.openwrt.uci:
-    command: set
-    key: network.iot.netmask
-    value: "{{ iot_netmask }}"
-
-- name: Commit network config
+- name: Commit and reload network
   community.openwrt.uci:
     command: commit
     key: network
+  changed_when: true
 
 - name: Reload network
   community.openwrt.command:

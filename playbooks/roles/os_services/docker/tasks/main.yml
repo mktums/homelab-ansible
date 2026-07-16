@@ -46,12 +46,6 @@
     state: present
     update_cache: true
 
-- name: Enable and start Docker service
-  ansible.builtin.systemd:
-    name: docker
-    enabled: true
-    state: started
-
 - name: Add users to docker group
   ansible.builtin.user:
     name: "{{ item }}"
@@ -80,7 +74,54 @@
     mode: "0755"
   when: docker_tcp_host | bool
 
-- name: Enable Docker TCP API listener
+- name: Ensure Docker TLS directory exists
+  ansible.builtin.file:
+    path: /etc/docker/tls
+    state: directory
+    mode: "0700"
+  when: docker_tcp_host | bool
+
+- name: Check Docker TLS cert validity (exists, SANs, expiry)
+  ansible.builtin.shell: |
+    CERT="/etc/docker/tls/server-cert.pem"
+    if [ ! -f "$CERT" ]; then echo "missing"; exit 0; fi
+    SANs=$(openssl x509 -in "$CERT" -noout -ext subjectAltName 2>/dev/null)
+    if ! echo "$SANs" | grep -q "DNS:{{ inventory_hostname }}.{{ lan_domain }}"; then echo "no-san"; exit 0; fi
+    if ! echo "$SANs" | grep -q "IP Address:127.0.0.1"; then echo "no-loopback"; exit 0; fi
+    EXPIRY=$(date -d "$(openssl x509 -enddate -noout -in "$CERT" | cut -d= -f2)" +%s)
+    DAYS_LEFT=$(( (EXPIRY - $(date +%s)) / 86400 ))
+    if [ "$DAYS_LEFT" -lt 30 ]; then echo "expiring"; exit 0; fi
+    echo "ok"
+  register: _docker_tls_check
+  changed_when: false
+  when: docker_tcp_host | bool
+
+- name: Generate Docker TLS cert (offline JWK)
+  when: docker_tcp_host | bool and _docker_tls_check.stdout != 'ok'
+  block:
+    - name: Generate Docker TLS token
+      ansible.builtin.shell: |
+        step-cli ca token "{{ inventory_hostname }}.{{ lan_domain }}" \
+          --offline \
+          --issuer "admin@step-ca.lan" \
+          --key /root/.step/secrets/jwk_priv.json \
+          --ca-url "https://{{ step_ca_cname }}.{{ lan_domain }}:{{ step_ca_port }}" \
+          --san "{{ inventory_hostname }}.{{ lan_domain }}" \
+          --san "{{ ansible_facts['default_ipv4']['address'] }}" \
+          --san "127.0.0.1"
+      register: _docker_tls_token
+      changed_when: true
+
+    - name: Issue Docker TLS certificate
+      ansible.builtin.command: |
+        step-cli ca certificate -f --token "{{ _docker_tls_token.stdout }}" \
+          --not-after 8760h \
+          "{{ inventory_hostname }}.{{ lan_domain }}" \
+          /etc/docker/tls/server-cert.pem \
+          /etc/docker/tls/server-key.pem
+      changed_when: true
+
+- name: Enable Docker TLS API listener
   ansible.builtin.template:
     src: docker-override.conf.j2
     dest: /etc/systemd/system/docker.service.d/override.conf
@@ -88,6 +129,20 @@
   notify:
     - Reload systemd daemon
     - Restart Docker
+  when: docker_tcp_host | bool
+
+- name: Register Docker TLS cert for auto-renewal
+  ansible.builtin.include_role:
+    name: common_tasks
+    tasks_from: register_jwk_renewal
+  vars:
+    renewal_name: "docker"
+    renewal_domain: "{{ inventory_hostname }}.{{ lan_domain }}"
+    renewal_cert: "/etc/docker/tls/server-cert.pem"
+    renewal_key: "/etc/docker/tls/server-key.pem"
+    renewal_service: "docker"
+    renewal_ca_url: "https://{{ step_ca_cname }}.{{ lan_domain }}:8443"
+    renewal_issuer: "admin@{{ step_ca_cname }}.{{ lan_domain }}"
   when: docker_tcp_host | bool
 
 - name: Install nvidia-container-toolkit
@@ -133,3 +188,9 @@
       when: >
         not _daemon_json.stat.exists or
         'nvidia' not in (_daemon_json_content.content | default('') | b64decode)
+
+- name: Enable and start Docker service
+  ansible.builtin.systemd:
+    name: docker
+    enabled: true
+    state: started

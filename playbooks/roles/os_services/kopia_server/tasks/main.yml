@@ -7,4 +7,15 @@
       when: kopia_sync_secondary_enabled
     - ansible.builtin.include_tasks: sync-external.yml
       when: kopia_sync_external_enabled
+    - ansible.builtin.include_role:
+        name: common_tasks
+        tasks_from: register_jwk_renewal
+      vars:
+        renewal_name: "kopia"
+        renewal_domain: "kopia.lan"
+        renewal_cert: "/srv/kopia/server.cert"
+        renewal_key: "/srv/kopia/server.key"
+        renewal_service: "kopia-server"
+        renewal_ca_url: "https://{{ step_ca_cname }}.{{ lan_domain }}:8443"
+        renewal_issuer: "admin@{{ step_ca_cname }}.{{ lan_domain }}"
   when: inventory_hostname in groups.get('kopia_server_hosts', [])

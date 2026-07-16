@@ -81,8 +81,6 @@ openwrt_packages:
   - shadow-useradd
   - openssl-util
 
-# adblock-lean — medium preset, cron schedule only (rest comes from gen_config)
-adblock_cron_schedule: "0 3 * * *"
 
 # Port forwards (DNAT from WAN to LAN hosts)
 port_forwards: []

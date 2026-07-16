@@ -1,0 +1,19 @@
+---
+# OpenWrt router: init, base config, step-ca
+- name: Configure OpenWrt router
+  hosts: routers
+  gather_facts: false
+  become: false
+
+  pre_tasks:
+    - name: Warn that check mode is not supported for this playbook
+      ansible.builtin.fail:
+        msg: >
+          The router playbook does not support --check mode.
+          Re-run without --check.
+      when: ansible_check_mode
+
+  roles:
+    - role: community.openwrt.init
+    - role: barebone/openwrt_base
+    - role: os_services/openwrt_step_ca

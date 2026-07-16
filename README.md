@@ -32,7 +32,7 @@ Internet
 │  DNS: unbound (127.0.0.1:5335)          │
 │       dnsmasq → unbound → DoT           │
 │       upstreams: Cloudflare + Google    │
-│  adblock-lean (medium preset)           │
+│  adblock-fast (dnsmasq.servers)         │
 │  step-ca       :8443  (ACME CA, native)  │
 └───┬─────────────────┬───────────────────┘
     │ LAN             │ IoT
@@ -70,8 +70,6 @@ Internet
         │   └── home.lan
         ├── dockhand       (via Traefik)
         │   └── dockhand.lan
-        ├── beszel         :8090 (via Traefik)
-        │   └── beszel.lan
         ├── kopia agent    (native)
         ├── cyberchef      (via Traefik)
         │   └── chef.tools.lan
@@ -102,7 +100,7 @@ DNS (*.lan resolved by dnsmasq):
   lib.lan             → lab2.lan     (CNAME)
   db.lan              → lab1.lan     (CNAME)
   links.lan           → lab1.lan     (CNAME)
-  beszel.lan          → lab2.lan     (CNAME)
+
   chef.tools.lan      → lab2.lan     (CNAME)
   it.tools.lan        → lab2.lan     (CNAME)
   photos.lan          → lab1.lan     (CNAME)
@@ -163,37 +161,9 @@ ansible-playbook playbooks/site.yml --tags servers   # servers only
 
 ### 5. Install root CA on your devices
 
-Copy the root certificate from the router: `scp root@10.10.10.1:/etc/step-ca/certs/root_ca.crt .`
-
-| Device | How to install |
-|--------|----------------|
-| Linux | `sudo cp root_ca.crt /usr/local/share/ca-certificates/ && sudo update-ca-certificates` |
-| macOS | `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain root_ca.crt` |
-| Windows | Double-click `root_ca.crt` → Install Certificate → **Local Machine** → **Trusted Root Certification Authorities** → Finish. Restart Chrome/Edge (`chrome://restart`). |
-| Android | Settings → Security → install certificate |
-| iOS | AirDrop or email the file → tap to install → Settings → General → VPN & Device Management → trust it |
+Open `http://openwrt.lan/ca.html` in your browser — it contains the root certificate for download and step-by-step installation instructions for your platform.
 
 Do this once per device. After this, all `*.lan` HTTPS services will show a green padlock with no warnings.
-
-> After deployment, visit `https://beszel.lan`, log in, then:
->
-> 1. Settings → Tokens → create a token → add to `vault_beszel_token`
-> 2. Add System → copy the public key → add to `vault_beszel_hub_key`
-> 3. Re-run `ansible-playbook playbooks/site.yml --tags beszel_hub,beszel_agent` to deploy agents
->
-> **S.M.A.R.T. monitoring**: The Beszel agent supports disk health monitoring via S.M.A.R.T. device mappings and Linux capabilities (`SYS_RAWIO`, `SYS_ADMIN`). Enable per-host by overriding in `inventory/host_vars/<host>.yml`:
-> ```yaml
-> beszel_smart_devices:
->   - /dev/sda:/dev/sda
->   - /dev/nvme0:/dev/nvme0  # controller device, not namespace (nvme0n1)
-> beszel_smart_cap_add:
->   - SYS_RAWIO
->   - SYS_ADMIN
-> beszel_extra_volumes:
->   - /<volume_path>/.beszel:/extra-filesystems/sda1:ro
-> ```
->
-> **Note**: The hub runs on lab2 and agent containers run on both lab1 and lab2. The hub token and hub key are configured separately from the agent credentials.
 
 ---
 
@@ -231,7 +201,6 @@ ansible-playbook playbooks/site.yml --tags layer_home
 
 # Single service
 ansible-playbook playbooks/site.yml --tags traefik
-ansible-playbook playbooks/site.yml --tags beszel_hub,beszel_agent
 ansible-playbook playbooks/site.yml --tags dockhand,dockhand_agent
 
 # Limit to specific host

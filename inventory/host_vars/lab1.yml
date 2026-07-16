@@ -12,22 +12,6 @@ system_optimize_mounts:
   - /mnt/shared
   - /mnt/green
 
-# Beszel agent configuration
-beszel_smart_devices:
-  - /dev/sda:/dev/sda
-  - /dev/sdb:/dev/sdb
-  - /dev/sdc:/dev/sdc
-  - /dev/sdd:/dev/sdd
-  - /dev/nvme0:/dev/nvme0
-beszel_smart_cap_add:
-  - SYS_RAWIO
-  - SYS_ADMIN
-beszel_extra_volumes:
-  - /mnt/data/.beszel:/extra-filesystems/sda__data:ro
-  - /mnt/backup/.beszel:/extra-filesystems/sdb__backup:ro
-  - /mnt/shared/.beszel:/extra-filesystems/sdc__shared:ro
-  - /mnt/green/.beszel:/extra-filesystems/sdd__green:ro
-
 # ── Kopia backup sources ────────────────────────────────────────────────
 backup_sources:
   postgres:
@@ -68,16 +52,17 @@ backup_sources:
           keep_monthly: 12
           keep_annual: 5
 
-  immich:
-    hostname: server
-    paths:
-      "{{ immich_upload_dir }}":
-        retention:
-          keep_latest: 10
-          keep_hourly: 48
-          keep_daily: 7
-          keep_weekly: 4
-          keep_monthly: 24
-          keep_annual: 3
-    actions:
-      before-snapshot-root: true
+  # immich: disabled — backup action broken (container name mismatch), deferred
+  # immich:
+  #   hostname: server
+  #   paths:
+  #     "{{ immich_upload_dir }}":
+  #       retention:
+  #         keep_latest: 10
+  #         keep_hourly: 48
+  #         keep_daily: 7
+  #         keep_weekly: 4
+  #         keep_monthly: 24
+  #         keep_annual: 3
+  #   actions:
+  #     before-snapshot-root: true

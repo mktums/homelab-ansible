@@ -13,7 +13,7 @@ security_ssh_x11_forwarding: "no"
 security_ssh_allowed_users:
   - "{{ admin_user }}"
 security_fail2ban_enabled: true
-security_autoupdate_enabled: true
+security_autoupdate_enabled: false
 security_autoupdate_reboot: false
 
 # Swap
@@ -99,11 +99,6 @@ meilisearch_master_key: "{{ vault_meilisearch_master_key }}"
 linkwarden_nextauth_secret: "{{ vault_linkwarden_nextauth_secret }}"
 linkwarden_db_password: "{{ vault_linkwarden_db_password }}"
 
-# Beszel
-beszel_admin_email: "{{ vault_beszel_admin_email }}"
-beszel_admin_password: "{{ vault_beszel_admin_password }}"
-beszel_token: "{{ vault_beszel_token }}"
-beszel_hub_key: "{{ vault_beszel_hub_key }}"
 
 # Kopia
 kopia_repo_password: "{{ vault_kopia_repo_password }}"
@@ -126,8 +121,8 @@ kopia_global_parallelism:
 # ── Kopia sync-to (secondary repo on SSD) ─────────────────────────────
 kopia_sync_secondary_enabled: true
 
-# Immich
-immich_db_password: "{{ vault_immich_db_password }}"
-
 # ── Kopia sync-to (external repo on T7 USB) ───────────────────────────
 kopia_sync_external_enabled: true
+
+# Immich
+immich_db_password: "{{ vault_immich_db_password }}"

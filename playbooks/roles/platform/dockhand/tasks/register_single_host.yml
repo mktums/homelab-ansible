@@ -1,0 +1,37 @@
+---
+# Register a single Docker host in DockHand
+
+- name: Read Docker TLS certs from {{ _remote_host }}
+  ansible.builtin.slurp:
+    src: "{{ item }}"
+  loop:
+    - /usr/local/share/ca-certificates/step-ca-root.crt
+    - /etc/docker/tls/server-cert.pem
+    - /etc/docker/tls/server-key.pem
+  register: _certs_raw
+  delegate_to: "{{ _remote_host }}"
+
+- name: Register {{ _remote_host }} in DockHand
+  ansible.builtin.include_role:
+    name: common_tasks
+    tasks_from: register_dockhand_env
+  vars:
+    _dockhand_server: "{{ inventory_hostname }}.{{ lan_domain }}"
+    _dockhand_env_name: "{{ _remote_host }}"
+    _dockhand_env_common:
+      name: "{{ _remote_host }}"
+      tlsSkipVerify: true
+      icon: "server"
+      collectActivity: true
+      collectMetrics: true
+      highlightChanges: true
+      labels: []
+      publicIp: "{{ _remote_host }}.{{ lan_domain }}"
+    _dockhand_env_body:
+      connectionType: "direct"
+      host: "{{ _remote_host }}.{{ lan_domain }}"
+      port: 2376
+      protocol: "https"
+      tlsCa: "{{ _certs_raw.results[0].content | b64decode }}"
+      tlsCert: "{{ _certs_raw.results[1].content | b64decode }}"
+      tlsKey: "{{ _certs_raw.results[2].content | b64decode }}"

@@ -14,7 +14,8 @@
   environment:
     KOPIA_PASSWORD: "{{ kopia_repo_password }}"
   changed_when: false
-  no_log: true
+  # no_log: true
+  failed_when: false
   when: (source_def.key + '@' + source_def.value.hostname) not in _kopia_existing_users
 
 - name: Refresh Kopia server after adding new user

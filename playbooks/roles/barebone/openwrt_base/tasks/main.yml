@@ -8,3 +8,4 @@
 - ansible.builtin.include_tasks: dhcp.yml
 - ansible.builtin.include_tasks: firewall.yml
 - ansible.builtin.include_tasks: wifi.yml
+- ansible.builtin.include_tasks: unbound.yml

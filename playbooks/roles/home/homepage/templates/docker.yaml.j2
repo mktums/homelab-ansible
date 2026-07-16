@@ -1,5 +1,9 @@
 {% for host in homepage_docker_hosts %}
 {{ host }}:
   host: {{ host }}.{{ lan_domain }}
-  port: 2375
+  port: 2376
+  tls:
+    caFile: tls/ca.pem
+    certFile: tls/cert.pem
+    keyFile: tls/key.pem
 {% endfor %}

@@ -2,7 +2,7 @@
 
 # Image
 jellyfin_image_name: "jellyfin/jellyfin"
-jellyfin_image_tag: "latest"
+jellyfin_image_tag: "10.11"
 
 # Paths
 jellyfin_opt_dir: "{{ ansible_opt_base }}/jellyfin"

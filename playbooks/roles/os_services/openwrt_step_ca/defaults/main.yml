@@ -2,9 +2,9 @@
 
 # Versions
 step_ca_version: "0.30.2"
-step_ca_checksum: "43f79d1b0b8cab9895dbadd46b0a014006f682a6b1341e1fadf0be31d4b9f4b4"
+step_ca_checksum: "d47988711e4aba07d882e6b90248372354925b90cf10ec3afbd479e441a000ad"
 step_cli_version: "0.30.6"
-step_cli_checksum: "eff511c3e6797039702e74fada62b10b079e413742f925703e5b7d810e611619"
+step_cli_checksum: "24e0980e0478466f8d53e5fd0a7919e65c180351814da26995df4439e1504103"
 
 # Paths
 step_path: "/etc/step-ca"

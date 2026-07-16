@@ -1,242 +1,119 @@
 ---
 # Rename default anonymous zones to named sections so we can reference them explicitly.
 # OpenWrt defaults: @zone[0]=lan, @zone[1]=wan — we rename them once, idempotently.
-- name: Rename default LAN zone to named section
+- name: Rename default firewall zones to named sections
   community.openwrt.command:
     cmd: >-
-      sh -c 'uci show firewall.lan_zone > /dev/null 2>&1 ||
-      uci rename firewall.@zone[0]=lan_zone'
+      sh -c 'uci show firewall.{{ item.dst }} > /dev/null 2>&1 ||
+      uci rename firewall.{{ item.src }}={{ item.dst }}'
+  loop:
+    - { src: '@zone[0]', dst: lan_zone }
+    - { src: '@zone[1]', dst: wan_zone }
   changed_when: false
 
-- name: Rename default WAN zone to named section
-  community.openwrt.command:
-    cmd: >-
-      sh -c 'uci show firewall.wan_zone > /dev/null 2>&1 ||
-      uci rename firewall.@zone[1]=wan_zone'
-  changed_when: false
-
-# LAN zone
-- name: Set LAN zone name
+- name: Configure LAN firewall zone
   community.openwrt.uci:
-    command: set
-    key: firewall.lan_zone.name
-    value: lan
+    command: section
+    config: firewall
+    type: zone
+    name: lan_zone
+    find: {}
+    value:
+      name: lan
+      input: ACCEPT
+      output: ACCEPT
+      forward: ACCEPT
+    replace: true
   notify: Commit and reload firewall
 
-- name: Set LAN zone input policy
+- name: Configure WAN firewall zone
   community.openwrt.uci:
-    command: set
-    key: firewall.lan_zone.input
-    value: ACCEPT
+    command: section
+    config: firewall
+    type: zone
+    name: wan_zone
+    find: {}
+    value:
+      name: wan
+      input: REJECT
+      output: ACCEPT
+      forward: REJECT
+      masq: "1"
+    replace: true
   notify: Commit and reload firewall
 
-- name: Set LAN zone output policy
+- name: Configure IoT firewall zone
   community.openwrt.uci:
-    command: set
-    key: firewall.lan_zone.output
-    value: ACCEPT
+    command: section
+    config: firewall
+    type: zone
+    name: iot_zone
+    find: {}
+    value:
+      name: iot
+      network: iot
+      input: DROP
+      output: ACCEPT
+      forward: DROP
+    replace: true
   notify: Commit and reload firewall
 
-- name: Set LAN zone forward policy
+- name: Configure IoT DHCP rule
   community.openwrt.uci:
-    command: set
-    key: firewall.lan_zone.forward
-    value: ACCEPT
+    command: section
+    config: firewall
+    type: rule
+    name: iot_dhcp
+    find: {}
+    value:
+      src: iot
+      dest_port: "67-68"
+      proto: udp
+      target: ACCEPT
+    replace: true
   notify: Commit and reload firewall
 
-# WAN zone
-- name: Set WAN zone name
+- name: Configure IoT DNS rule
   community.openwrt.uci:
-    command: set
-    key: firewall.wan_zone.name
-    value: wan
+    command: section
+    config: firewall
+    type: rule
+    name: iot_dns
+    find: {}
+    value:
+      src: iot
+      dest_port: "53"
+      proto: "tcp udp"
+      target: ACCEPT
+    replace: true
   notify: Commit and reload firewall
 
-- name: Set WAN zone input policy
+- name: Configure IoT to WAN forwarding
   community.openwrt.uci:
-    command: set
-    key: firewall.wan_zone.input
-    value: REJECT
+    command: section
+    config: firewall
+    type: forwarding
+    name: iot_to_wan
+    find: {}
+    value:
+      src: iot
+      dest: wan
+    replace: true
   notify: Commit and reload firewall
 
-- name: Set WAN zone output policy
+- name: Configure LAN to IoT forwarding
   community.openwrt.uci:
-    command: set
-    key: firewall.wan_zone.output
-    value: ACCEPT
+    command: section
+    config: firewall
+    type: forwarding
+    name: lan_to_iot
+    find: {}
+    value:
+      src: lan
+      dest: iot
+    replace: true
   notify: Commit and reload firewall
 
-- name: Set WAN zone forward policy
-  community.openwrt.uci:
-    command: set
-    key: firewall.wan_zone.forward
-    value: REJECT
-  notify: Commit and reload firewall
-
-- name: Enable masquerading on WAN zone
-  community.openwrt.uci:
-    command: set
-    key: firewall.wan_zone.masq
-    value: "1"
-  notify: Commit and reload firewall
-
-# IoT zone
-- name: Create IoT firewall zone
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_zone
-    value: zone
-  notify: Commit and reload firewall
-
-- name: Set IoT zone name
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_zone.name
-    value: iot
-  notify: Commit and reload firewall
-
-- name: Set IoT zone network
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_zone.network
-    value: iot
-  notify: Commit and reload firewall
-
-- name: Set IoT zone input policy
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_zone.input
-    value: DROP
-  notify: Commit and reload firewall
-
-- name: Allow DHCP input on IoT zone
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_dhcp
-    value: rule
-  notify: Commit and reload firewall
-
-- name: Set DHCP rule src zone
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_dhcp.src
-    value: iot
-  notify: Commit and reload firewall
-
-- name: Set DHCP rule dest port
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_dhcp.dest_port
-    value: "67-68"
-  notify: Commit and reload firewall
-
-- name: Set DHCP rule protocol
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_dhcp.proto
-    value: udp
-  notify: Commit and reload firewall
-
-- name: Set DHCP rule target
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_dhcp.target
-    value: ACCEPT
-  notify: Commit and reload firewall
-
-- name: Allow DNS input on IoT zone
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_dns
-    value: rule
-  notify: Commit and reload firewall
-
-- name: Set DNS rule src zone
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_dns.src
-    value: iot
-  notify: Commit and reload firewall
-
-- name: Set DNS rule dest port
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_dns.dest_port
-    value: "53"
-  notify: Commit and reload firewall
-
-- name: Set DNS rule protocol
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_dns.proto
-    value: "tcp udp"
-  notify: Commit and reload firewall
-
-- name: Set DNS rule target
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_dns.target
-    value: ACCEPT
-  notify: Commit and reload firewall
-
-- name: Set IoT zone output policy
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_zone.output
-    value: ACCEPT
-  notify: Commit and reload firewall
-
-- name: Set IoT zone forward policy
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_zone.forward
-    value: DROP
-  notify: Commit and reload firewall
-
-# Forwardings
-- name: Allow IoT to WAN
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_to_wan
-    value: forwarding
-  notify: Commit and reload firewall
-
-- name: Set IoT to WAN src
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_to_wan.src
-    value: iot
-  notify: Commit and reload firewall
-
-- name: Set IoT to WAN dest
-  community.openwrt.uci:
-    command: set
-    key: firewall.iot_to_wan.dest
-    value: wan
-  notify: Commit and reload firewall
-
-- name: Allow LAN to IoT
-  community.openwrt.uci:
-    command: set
-    key: firewall.lan_to_iot
-    value: forwarding
-  notify: Commit and reload firewall
-
-- name: Set LAN to IoT src
-  community.openwrt.uci:
-    command: set
-    key: firewall.lan_to_iot.src
-    value: lan
-  notify: Commit and reload firewall
-
-- name: Set LAN to IoT dest
-  community.openwrt.uci:
-    command: set
-    key: firewall.lan_to_iot.dest
-    value: iot
-  notify: Commit and reload firewall
-
-# Port forwards
 - name: Configure port forwards
   community.openwrt.uci:
     command: set
@@ -257,20 +134,16 @@
 
 - name: Block LAN clients from bypassing router DNS
   community.openwrt.uci:
-    command: set
-    key: "firewall.block_public_dns"
-    value: rule
-  notify: Commit and reload firewall
-
-- name: Set DNS block rule properties
-  community.openwrt.uci:
-    command: set
-    key: "firewall.block_public_dns.{{ item.key }}"
-    value: "{{ item.value }}"
-  loop:
-    - { key: name,      value: "Block-Public-DNS" }
-    - { key: src,       value: "lan" }
-    - { key: dest,      value: "wan" }
-    - { key: dest_port, value: "53 853" }
-    - { key: target,    value: "REJECT" }
+    command: section
+    config: firewall
+    type: rule
+    name: block_public_dns
+    find: {}
+    value:
+      name: "Block-Public-DNS"
+      src: "lan"
+      dest: "wan"
+      dest_port: "53 853"
+      target: "REJECT"
+    replace: true
   notify: Commit and reload firewall

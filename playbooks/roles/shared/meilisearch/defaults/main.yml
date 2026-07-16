@@ -1,7 +1,7 @@
 # Meilisearch defaults
 
 meilisearch_image_name: "getmeili/meilisearch"
-meilisearch_image_tag: "latest"
+meilisearch_image_tag: "v1.49"
 meilisearch_port: 7700
 meilisearch_opt_dir: "{{ ansible_opt_base }}/meilisearch"
 meilisearch_data_dir: "{{ docker_data_base }}/meilisearch"

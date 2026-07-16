@@ -1,128 +1,64 @@
 ---
-# IPv6 — configurable via lan_ipv6_disabled (default: false)
-- name: Disable IPv6 leases on LAN
+- name: Configure LAN DHCP
   community.openwrt.uci:
     command: set
-    key: dhcp.lan.dhcpv6
-    value: disabled
-  notify: Commit and restart dnsmasq
-  when: lan_ipv6_disabled | default(false)
-
-- name: Disable IPv6 RA on LAN
-  community.openwrt.uci:
-    command: set
-    key: dhcp.lan.ra
-    value: disabled
-  notify: Commit and restart dnsmasq
-  when: lan_ipv6_disabled | default(false)
-
-- name: Set local domain
-  community.openwrt.uci:
-    command: set
-    key: dhcp.@dnsmasq[0].domain
-    value: "{{ lan_domain }}"
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  loop:
+    - key: dhcp.@dnsmasq[0].domain
+      value: "{{ lan_domain }}"
+    - key: dhcp.lan.start
+      value: "{{ lan_dhcp_start }}"
+    - key: dhcp.lan.limit
+      value: "{{ lan_dhcp_limit }}"
+    - key: dhcp.lan.leasetime
+      value: "{{ lan_dhcp_leasetime }}"
   notify: Commit and restart dnsmasq
 
-- name: Set LAN DHCP start
+- name: Configure IoT DHCP
   community.openwrt.uci:
     command: set
-    key: dhcp.lan.start
-    value: "{{ lan_dhcp_start }}"
-  notify: Commit and restart dnsmasq
-
-- name: Set LAN DHCP limit
-  community.openwrt.uci:
-    command: set
-    key: dhcp.lan.limit
-    value: "{{ lan_dhcp_limit }}"
-  notify: Commit and restart dnsmasq
-
-- name: Set LAN DHCP leasetime
-  community.openwrt.uci:
-    command: set
-    key: dhcp.lan.leasetime
-    value: "{{ lan_dhcp_leasetime }}"
-  notify: Commit and restart dnsmasq
-
-- name: Create IoT DHCP config
-  community.openwrt.uci:
-    command: set
-    key: dhcp.iot
-    value: dhcp
-  notify: Commit and restart dnsmasq
-
-- name: Set IoT DHCP interface
-  community.openwrt.uci:
-    command: set
-    key: dhcp.iot.interface
-    value: iot
-  notify: Commit and restart dnsmasq
-
-- name: Set IoT DHCP start
-  community.openwrt.uci:
-    command: set
-    key: dhcp.iot.start
-    value: "{{ iot_dhcp_start }}"
-  notify: Commit and restart dnsmasq
-
-- name: Set IoT DHCP limit
-  community.openwrt.uci:
-    command: set
-    key: dhcp.iot.limit
-    value: "{{ iot_dhcp_limit }}"
-  notify: Commit and restart dnsmasq
-
-- name: Set IoT DHCP leasetime
-  community.openwrt.uci:
-    command: set
-    key: dhcp.iot.leasetime
-    value: "{{ iot_dhcp_leasetime }}"
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  loop:
+    - key: dhcp.iot
+      value: dhcp
+    - key: dhcp.iot.interface
+      value: iot
+    - key: dhcp.iot.start
+      value: "{{ iot_dhcp_start }}"
+    - key: dhcp.iot.limit
+      value: "{{ iot_dhcp_limit }}"
+    - key: dhcp.iot.leasetime
+      value: "{{ iot_dhcp_leasetime }}"
   notify: Commit and restart dnsmasq
 
 - name: Add DHCP reservations
   community.openwrt.uci:
-    command: set
-    key: "dhcp.{{ item.name }}"
-    value: host
-  loop: "{{ dhcp_reservations }}"
-  notify: Commit and restart dnsmasq
-
-- name: Set DHCP reservation MAC
-  community.openwrt.uci:
-    command: set
-    key: "dhcp.{{ item.name }}.mac"
-    value: "{{ item.mac }}"
-  loop: "{{ dhcp_reservations }}"
-  notify: Commit and restart dnsmasq
-
-- name: Set DHCP reservation IP
-  community.openwrt.uci:
-    command: set
-    key: "dhcp.{{ item.name }}.ip"
-    value: "{{ item.ip }}"
+    command: section
+    config: dhcp
+    type: host
+    name: "{{ item.name }}"
+    find:
+      mac: "{{ item.mac }}"
+    value:
+      mac: "{{ item.mac }}"
+      ip: "{{ item.ip }}"
+    replace: true
   loop: "{{ dhcp_reservations }}"
   notify: Commit and restart dnsmasq
 
 - name: Add DNS CNAMEs
   community.openwrt.uci:
-    command: set
-    key: "dhcp.{{ item.cname | regex_replace('[^a-zA-Z0-9_]', '_') }}"
-    value: cname
-  loop: "{{ dns_cnames }}"
-  notify: Commit and restart dnsmasq
-
-- name: Set CNAME record name
-  community.openwrt.uci:
-    command: set
-    key: "dhcp.{{ item.cname | regex_replace('[^a-zA-Z0-9_]', '_') }}.cname"
-    value: "{{ item.cname }}"
-  loop: "{{ dns_cnames }}"
-  notify: Commit and restart dnsmasq
-
-- name: Set CNAME record target
-  community.openwrt.uci:
-    command: set
-    key: "dhcp.{{ item.cname | regex_replace('[^a-zA-Z0-9_]', '_') }}.target"
-    value: "{{ item.target }}"
+    command: section
+    config: dhcp
+    type: cname
+    name: "{{ item.cname | regex_replace('[^a-zA-Z0-9_]', '_') }}"
+    find:
+      cname: "{{ item.cname }}"
+    value:
+      cname: "{{ item.cname }}"
+      target: "{{ item.target }}"
+    replace: true
   loop: "{{ dns_cnames }}"
   notify: Commit and restart dnsmasq

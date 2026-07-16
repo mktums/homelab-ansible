@@ -1,3 +1,0 @@
----
-dependencies:
-  - role: os_services/step_cli

@@ -16,7 +16,7 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 2
 fi
 
-HOSTNAME="$(hostname 2>/dev/null || echo 'unknown')"
+HOSTNAME="$(uname -n 2>/dev/null || echo 'unknown')"
 TIMESTAMP="$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
 
 echo "# Hardware Report: ${HOSTNAME}"

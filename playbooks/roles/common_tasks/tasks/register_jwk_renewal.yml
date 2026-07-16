@@ -1,0 +1,42 @@
+---
+# Register JWK certificate auto-renewal
+# Usage:
+#   include_role:
+#     name: common_tasks
+#     tasks_from: register_jwk_renewal
+#   vars:
+#     renewal_name: "servicename"      # systemd instance name
+#     renewal_domain: "service.lan"    # certificate CN
+#     renewal_cert: "/path/to/cert"    # cert path
+#     renewal_key: "/path/to/key"      # key path
+#     renewal_service: "service"       # systemd service to restart
+#     renewal_ca_url: "https://step-ca.lan:8443"  # CA URL
+#     renewal_issuer: "admin@step-ca.lan"          # JWK provisioner
+
+- name: Ensure scripts directory exists
+  ansible.builtin.file:
+    path: /opt/ansible/scripts
+    state: directory
+    mode: "0755"
+
+- name: Deploy JWK renewal script
+  ansible.builtin.copy:
+    src: renew-jwk-cert.sh
+    dest: /opt/ansible/scripts/renew-jwk-cert.sh
+    mode: "0755"
+
+- name: Deploy JWK renewal systemd units for {{ renewal_name }}
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0644"
+  loop:
+    - { src: 'renew-jwk-cert@.service.j2', dest: "/etc/systemd/system/renew-jwk-cert@{{ renewal_name }}.service" }
+    - { src: 'renew-jwk-cert@.timer.j2', dest: "/etc/systemd/system/renew-jwk-cert@{{ renewal_name }}.timer" }
+  notify: Reload systemd daemon
+
+- name: Enable JWK renewal timer for {{ renewal_name }}
+  ansible.builtin.systemd:
+    name: "renew-jwk-cert@{{ renewal_name }}.timer"
+    state: started
+    enabled: yes
