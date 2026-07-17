@@ -188,4 +188,3 @@ For each role migration:
 ## Rollback
 
 Each batch is independent. To roll back: revert the role's tasks/handlers/templates to pre-migration state, run the service playbook again. Old `docker_container` modules remain available in Ansible — no dependency on compose being "all or nothing."
-

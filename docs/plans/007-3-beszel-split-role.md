@@ -159,4 +159,3 @@ If hub restarts, the agent may temporarily lose connection. Using `restart: on-f
 ## Rollback
 
 Revert role files, run service playbook. Hub data dir is bind mount — survives deployment method change. Agent re-registers on restart if needed (uses static token/key from vault).
-

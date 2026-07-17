@@ -124,4 +124,3 @@ ansible-playbook playbooks/servers.yml --tags postgres
 ## Rollback
 
 Disable systemd timer, remove agent config file. Server-side user cleaned via `docker compose exec kopia-server kopia server users delete <identity>`. Existing snapshots expire per retention policy.
-

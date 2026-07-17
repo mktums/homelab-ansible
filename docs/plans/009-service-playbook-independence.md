@@ -60,4 +60,3 @@ Tried dependency injection via `tasks_from: _no_op` but discovered play-level ro
 | `traefik/defaults/main.yml` | `step_ca_port` |
 | `linkwarden/defaults/main.yml` | `postgres_port` |
 | `beszel_agent/defaults/main.yml` | `beszel_cname`, `beszel_port` |
-

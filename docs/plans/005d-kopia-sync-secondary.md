@@ -114,4 +114,3 @@ The alternative — two separate repos with different passwords, policies, and a
 ## Rollback
 
 Disable `kopia_sync_secondary_enabled` in group_vars/host_vars and re-run playbook. Secondary data persists on disk for future re-enablement.
-

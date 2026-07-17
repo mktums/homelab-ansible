@@ -250,4 +250,3 @@ Self-hosted Magic: The Gathering deck builder with Mana Pool integration, price 
 ---
 
 _Add new entries above. When an entry moves to implementation, create a numbered plan (e.g., `021-add-<service>.md`) and link back here._
-

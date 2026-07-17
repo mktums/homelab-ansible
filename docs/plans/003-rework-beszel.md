@@ -62,4 +62,3 @@ Use `community.beszel.agent` for agent deployment on each host. This handles:
 ## Rollback
 
 Collection is a galaxy install/uninstall away. Playbooks can be reverted by restoring from git.
-

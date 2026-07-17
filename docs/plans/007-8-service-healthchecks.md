@@ -83,4 +83,3 @@ Audit all services and create healthchecks where applicable.
 ## Rollback
 
 Revert role files, run service playbook. Healthchecks are additive — removing them has no side effects on existing containers (Docker ignores unknown healthcheck keys).
-

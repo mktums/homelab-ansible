@@ -67,4 +67,3 @@ rm -rf /opt/ansible/searxng/
 Then remove role from `site.yml` and `searxng_hosts` from `hosts.yml`.
 
 ## Status: Done
-

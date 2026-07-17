@@ -676,5 +676,3 @@ ip -br addr show 2>/dev/null | grep -vE "lo|veth|docker|br-|virbr|vnet|tun|tap|w
 
     echo "| ${ifname} | ${model} | ${link_speed} | ${ipaddr} | ${status} |"
 done
-
-echo ""

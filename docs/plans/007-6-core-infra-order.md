@@ -198,4 +198,3 @@ docker logs traefik | grep -i acme | tail -20
 ## Rollback
 
 Revert role files, run service playbook. Step-ca data dir and traefik acme.json are bind mounts — survive deployment method change. Existing certificates in acme.json remain valid; only container restart causes brief downtime.
-

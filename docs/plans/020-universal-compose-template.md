@@ -70,4 +70,3 @@ R&D only — no implementation until approach is selected and proven.
 ## Affected files (if implemented)
 
 All `playbooks/roles/*/templates/docker-compose.yml.j2` (15+ files) and potentially handler files.
-

@@ -10,5 +10,3 @@ linkwarden_data_dir: "{{ docker_data_base }}/linkwarden"
 
 # CNAME subdomain (without .{{ lan_domain }})
 linkwarden_cname: "links"
-
-

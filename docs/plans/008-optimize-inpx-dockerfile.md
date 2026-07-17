@@ -161,4 +161,3 @@ Override per-host in `inventory/host_vars/lab2.yml` if needed.
 ## Rollback
 
 Keep current Dockerfile as `Dockerfile.bak` in role files until optimized version is tested and confirmed working. Same for supervisord.conf → `supervisord.conf.bak`.
-

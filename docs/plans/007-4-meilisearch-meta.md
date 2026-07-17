@@ -123,4 +123,3 @@ docker exec linkwarden curl -s http://meili.lan.domain:7700/health  # or equival
 ## Rollback
 
 Revert role files, run service playbook. Meilisearch index data is bind mount — survives deployment method change. If rollback needed after 007-5 (linkwarden compose), also temporarily revert linkwarden's MEILI_HOST to Docker internal DNS or ensure meilisearch stays up during transition.
-

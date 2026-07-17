@@ -526,4 +526,3 @@ No role changes needed — just inventory entries and optional action templates 
 ### Known limitations (acceptable for current scale)
 
 - **One systemd timer per identity** — all paths under one source snapshot together. Matches current behavior and keeps timer management simple.
-

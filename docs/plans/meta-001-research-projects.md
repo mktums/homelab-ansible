@@ -46,4 +46,3 @@ In the event of total internet cutoff, define procedures and tooling to (re)crea
 ---
 
 _Add new entries above. Keep rejected entries — they're useful for "we tried this."_
-

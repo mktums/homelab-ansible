@@ -158,4 +158,3 @@ docker network ls | grep linkwarden  # should be empty after migration
 ## Rollback
 
 Revert role files, run service playbook. Linkwarden data dir is bind mount — survives deployment method change. If rollback happens before meilisearch meta-service is stable, temporarily restore inline meilisearch container in linkwarden compose (revert 007-0 extraction for this role only).
-

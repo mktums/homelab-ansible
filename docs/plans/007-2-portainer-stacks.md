@@ -111,4 +111,3 @@ docker exec portainer-edge-agent curl -sk https://portainer.lan_domain:9443/api/
 ## Rollback
 
 Revert role files, run service playbook. Portainer data dir is bind mount — survives deployment method change. Edge agent re-registers on restart if needed.
-

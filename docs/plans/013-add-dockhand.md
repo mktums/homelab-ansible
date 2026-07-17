@@ -105,4 +105,3 @@ ansible-playbook playbooks/servers.yml --tags dockhand_agent
 # Verify
 ansible-playbook playbooks/servers.yml --tags dockhand,dockhand_agent
 ```
-

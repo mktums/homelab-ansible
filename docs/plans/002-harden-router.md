@@ -23,4 +23,3 @@ The router is currently **not hardened** by Ansible — it accepts password auth
 ## Rollback
 
 Each task is idempotent and reversible. The main risk is locking yourself out if key provisioning fails — mitigated by keeping password auth as a fallback during transition.
-

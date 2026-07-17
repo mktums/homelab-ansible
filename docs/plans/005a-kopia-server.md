@@ -142,4 +142,3 @@ Scheduling and retention are per-source (set in `register_source.yml`), not glob
 ## Rollback
 
 Stop container, remove role and group assignment. Repository data persists on disk for future re-deployment.
-

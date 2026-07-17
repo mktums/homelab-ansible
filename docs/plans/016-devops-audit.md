@@ -46,4 +46,3 @@ Brutal review of the entire project. Issues sorted by severity
 | 39 | No ansible-lint or CI | No linting, no syntax checking CI, no molecule tests. May add molecule later. | ❌ Rejected — manual debug for now |
 | 40 | `failed_when: false` hides real errors | Used on `swapon --show`, `dpkg-query`, and other diagnostic commands. Real failures are silently ignored. | ⚠️ To investigate — large scope, affects many tasks |
 | 41 | Ansible outdated | Running ansible 13.4.0 (Feb 2026). Latest is 14.1.0 (Jun 2026). ~4 months behind. Update `ansible` and `ansible-core` packages. | ⚠️ Manual — update Ansible on Windows controller: `pip install --upgrade ansible-core` |
-

@@ -131,4 +131,3 @@ Full stack validation after all three roles migrated.
 ## Rollback
 
 Revert role files to pre-migration state, run service playbook. Container comes back via old `docker_container` task. Bind mounts preserve data regardless of deployment method.
-
