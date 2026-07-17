@@ -1,0 +1,30 @@
+---
+- name: Deploy step-ca init script
+  community.openwrt.template:
+    src: step-ca.init.j2
+    dest: /etc/init.d/step-ca
+    mode: '0755'
+  register: _init_script_deployed
+  notify: Restart step-ca
+
+- name: Ensure step-ca service is enabled and running
+  community.openwrt.service:
+    name: step-ca
+    enabled: true
+    state: restarted
+  when: _ca_json_rendered.changed | default(false) or _init_script_deployed.changed | default(false)
+
+- name: Ensure step-ca service is started
+  community.openwrt.service:
+    name: step-ca
+    enabled: true
+    state: started
+
+- name: Wait for step-ca to start
+  community.openwrt.command:
+    cmd: curl -sk https://127.0.0.1:{{ step_ca_port }}/health
+  register: _health_check
+  until: '"ok" in _health_check.stdout'
+  retries: 10
+  delay: 3
+  changed_when: false

@@ -1,0 +1,26 @@
+---
+- name: Render ca.json
+  community.openwrt.template:
+    src: ca.json.j2
+    dest: "{{ step_ca_path }}/config/ca.json"
+    mode: '0600'
+    owner: step
+    group: step
+  register: _ca_json_rendered
+  notify: Restart step-ca
+
+- name: Write intermediate password file
+  community.openwrt.copy:
+    content: "{{ step_ca_intermediate_password }}"
+    dest: "{{ step_ca_path }}/secrets/ca_password.txt"
+    mode: '0600'
+  no_log: true
+  notify: Restart step-ca
+
+- name: Set ownership on step-ca data
+  community.openwrt.file:
+    path: "{{ step_ca_path }}"
+    state: directory
+    owner: step
+    group: step
+    recurse: true

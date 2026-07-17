@@ -1,0 +1,31 @@
+---
+- name: Wait for step-ca to be ready after restart
+  ansible.builtin.pause:
+    seconds: 3
+
+- name: Smoke test — check CA health endpoint
+  community.openwrt.command:
+    cmd: curl -sk https://127.0.0.1:{{ step_ca_port }}/health
+  register: _smoke_health
+  failed_when: "_smoke_health.rc != 0 or 'ok' not in _smoke_health.stdout"
+  changed_when: false
+
+- name: Smoke test — check ACME directory endpoint
+  community.openwrt.command:
+    cmd: curl -sk https://127.0.0.1:{{ step_ca_port }}/acme/acme/directory
+  register: _smoke_acme
+  failed_when: "_smoke_acme.rc != 0 or 'newAccount' not in _smoke_acme.stdout"
+  changed_when: false
+
+- name: Smoke test — check JWK provisioner via /provisioners endpoint
+  community.openwrt.command:
+    cmd: >-
+      curl -sk https://127.0.0.1:{{ step_ca_port }}/provisioners
+      | grep -q "admin@{{ step_ca_cname }}.{{ lan_domain }}"
+  register: _smoke_jwk
+  failed_when: "_smoke_jwk.rc != 0"
+  changed_when: false
+
+- name: Smoke test passed
+  ansible.builtin.debug:
+    msg: "step-ca smoke tests passed (health, ACME, JWK provisioner)"

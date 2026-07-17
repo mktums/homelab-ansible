@@ -3,4 +3,3 @@
   community.openwrt.service:
     name: step-ca
     state: restarted
-  changed_when: false

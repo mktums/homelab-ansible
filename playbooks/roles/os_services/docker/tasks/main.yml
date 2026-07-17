@@ -96,16 +96,14 @@
   changed_when: false
   when: docker_tcp_host | bool
 
-- name: Generate Docker TLS cert (offline JWK)
+- name: Generate Docker TLS cert (online JWK)
   when: docker_tcp_host | bool and _docker_tls_check.stdout != 'ok'
   block:
     - name: Generate Docker TLS token
       ansible.builtin.shell: |
         step-cli ca token "{{ inventory_hostname }}.{{ lan_domain }}" \
-          --offline \
-          --issuer "admin@step-ca.lan" \
-          --key /root/.step/secrets/jwk_priv.json \
-          --ca-url "https://{{ step_ca_cname }}.{{ lan_domain }}:{{ step_ca_port }}" \
+          --provisioner "admin@{{ step_ca_cname }}.{{ lan_domain }}" \
+          --password-file /root/.step/secrets/jwk_password.txt \
           --san "{{ inventory_hostname }}.{{ lan_domain }}" \
           --san "{{ ansible_facts['default_ipv4']['address'] }}" \
           --san "127.0.0.1"

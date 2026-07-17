@@ -1,0 +1,41 @@
+---
+- name: Install step binaries
+  block:
+    - name: Create temporary download directory
+      community.openwrt.file:
+        path: "/tmp/{{ item.name }}-install"
+        state: directory
+        mode: '0755'
+
+    - name: Download {{ item.name }} binary
+      community.openwrt.command:
+        cmd: "cd /tmp/{{ item.name }}-install && curl -LO --retry 5 https://github.com/smallstep/{{ item.repo }}/releases/download/v{{ vars[item.version_var] }}/{{ item.name }}_linux_arm64.tar.gz"
+      changed_when: true
+
+    - name: Verify {{ item.name }} checksum
+      community.openwrt.command:
+        cmd: "cd /tmp/{{ item.name }}-install && echo \"{{ vars[item.checksum_var] }}  {{ item.name }}_linux_arm64.tar.gz\" | sha256sum -c"
+      changed_when: false
+
+    - name: Extract {{ item.name }} archive
+      community.openwrt.command:
+        cmd: "cd /tmp/{{ item.name }}-install && tar -zxf {{ item.name }}_linux_arm64.tar.gz && rm {{ item.name }}_linux_arm64.tar.gz"
+      changed_when: true
+
+    - name: Install {{ item.name }} binary
+      community.openwrt.command:
+        cmd: "mv /tmp/{{ item.name }}-install/step_linux_arm64/{{ item.extract }} /usr/bin/{{ item.name }}"
+      changed_when: true
+
+    - name: Clean up temporary directory
+      community.openwrt.file:
+        path: "/tmp/{{ item.name }}-install"
+        state: absent
+  always:
+    - name: Ensure temporary directory is cleaned up
+      community.openwrt.file:
+        path: "/tmp/{{ item.name }}-install"
+        state: absent
+  loop: "{{ _step_binaries }}"
+  loop_control:
+    label: "{{ item.name }}"

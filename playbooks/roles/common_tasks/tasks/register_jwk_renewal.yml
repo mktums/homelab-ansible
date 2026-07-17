@@ -11,7 +11,7 @@
 #     renewal_key: "/path/to/key"      # key path
 #     renewal_service: "service"       # systemd service to restart
 #     renewal_ca_url: "https://step-ca.lan:8443"  # CA URL
-#     renewal_issuer: "admin@step-ca.lan"          # JWK provisioner
+#     renewal_issuer: "admin@{{ step_ca_cname }}.{{ lan_domain }}"  # JWK provisioner
 
 - name: Ensure scripts directory exists
   ansible.builtin.file:

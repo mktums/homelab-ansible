@@ -16,10 +16,10 @@ Each file describes a single change or refactoring effort: the motivation, affec
 
 Meta plans are living documents — collections of ideas, not implementation specs.
 
-| # | Priority | Plan | Difficulty | Status |
-|---|----------|------|------------|--------|
-| meta-001 | — | [R&D: Interesting projects](meta-001-research-projects.md) | — | 📋 Living |
-| meta-002 | — | [Interesting services](meta-002-interesting-services.md) | — | 📋 Living |
+| # | Plan |
+|---|------|
+| meta-001 | [R&D: Interesting projects](meta-001-research-projects.md) |
+| meta-002 | [Interesting services](meta-002-interesting-services.md) |
 
 ## Plans
 
@@ -34,17 +34,17 @@ Meta plans are living documents — collections of ideas, not implementation spe
 | 5b | Critical | [Kopia agents (lab services, PC, MacBook, Android)](005b-kopia-agents.md) | Hard | ✅ Done (2026-05-13) |
 | 5c | Normal | [Service backups: step-ca, postgres, vaultwarden, linkwarden](005c-kopia-service-backups.md) | Medium | ✅ Done (pattern updated by [011](011-centralize-kopia-backups.md)) |
 | 6 | Low | [Service docs generator approach TBD](006-docs-generator-approach.md) | — | ❌ Rejected |
-| 14 | Normal | [Documentation generator](014-docs-generator.md) | Hard | Planned |
 | 7 | High | [Migrate from docker_container to Docker Compose](007-migrate-to-docker-compose.md) | Hard | ✅ Done (2026-05-07) |
 | 8 | Low | [Optimize inpx-web Dockerfile (multi-stage build)](008-optimize-inpx-dockerfile.md) | Medium | ✅ Done (2026-05-18) |
 | 9 | Normal | [Reconsider service playbook independence](009-service-playbook-independence.md) | Easy | ✅ Done (2026-05-05) |
 | 10 | High | [CNAME name/target consistency across roles](010-cname-consistency.md) | Medium | ✅ Done (2026-05-09) |
 | 11 | Normal | [Centralize Kopia backup orchestration in kopia_agent role](011-centralize-kopia-backups.md) | Medium | ✅ Done (2026-05-17) |
 | 12 | High | [Migrate Kopia server from Docker to native binary](012-migrate-kopia-to-native.md) | Medium | ✅ Done (2026-06-16) |
-| 13 | Normal | [Add DockHand](013-add-dockhand.md) | Medium | Done |
+| 13 | Normal | [Add DockHand](013-add-dockhand.md) | Medium | ✅ Done |
+| 14 | Normal | [Documentation generator](014-docs-generator.md) | Hard | Planned |
 | 15 | Normal | [Add Immich](015-add-immich.md) | Medium | ✅ Done (2026-06-21) |
 | 16 | High | [DevOps audit — 41 issues](016-devops-audit.md) | Hard | ✅ Done (2026-07-02) |
 | 17 | Normal | [Restructure roles into 7-layer model](017-restructure-7-layers.md) | Hard | ✅ Done (2026-07-05) |
 | 18 | Normal | [Add SearXNG metasearch engine](018-add-searxng.md) | Easy | ✅ Done (2026-07-09) |
 | 20 | Low | [R&D — universal compose template for common blocks](020-universal-compose-template.md) | Medium | 📋 Planned |
-
+| 21 | High | [Refactor openwrt_step_ca into v2](021-refactor-openwrt-step-ca-v2.md) | Medium | ✅ Done (2026-07-17) |

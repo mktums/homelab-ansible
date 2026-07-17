@@ -1,0 +1,13 @@
+---
+- name: Check if step user exists
+  community.openwrt.command:
+    cmd: id step
+  register: _step_user
+  changed_when: false
+  failed_when: false
+
+- name: Create step system user
+  community.openwrt.command:
+    cmd: useradd --user-group --system --create-home --home-dir {{ step_ca_path }} --shell /bin/false step
+  changed_when: true
+  when: _step_user.rc != 0

@@ -62,7 +62,7 @@
   when: not kopia_config_stat.stat.exists
   no_log: true
 
-# ── TLS certificate (step-ca, offline issuance) ─────────────────────────
+# ── TLS certificate (step-ca, online issuance) ──────────────────────────
 
 - name: Check if TLS certificate exists and is valid
   ansible.builtin.command: openssl x509 -in {{ kopia_config_dir }}/server.cert -checkend 2592000 -noout
@@ -70,12 +70,11 @@
   changed_when: false
   failed_when: false
 
-- name: Generate ACME token for kopia.lan (offline)
+- name: Generate token for kopia.lan (online)
   ansible.builtin.command: >-
     step-cli ca token {{ kopia_cname }}.{{ lan_domain }}
     --provisioner admin@{{ step_ca_cname }}.{{ lan_domain }}
-    --offline
-    --key /root/.step/secrets/jwk_priv.json
+    --password-file /root/.step/secrets/jwk_password.txt
   register: kopia_acme_token
   changed_when: false
   no_log: true

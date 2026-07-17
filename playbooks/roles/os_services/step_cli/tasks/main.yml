@@ -72,15 +72,13 @@
     path: /root/.step/secrets
     state: directory
     mode: "0700"
-  when:
-    - not ansible_check_mode
-    - vault_step_ca_jwk_priv is defined and vault_step_ca_jwk_priv | length > 0
+  when: not ansible_check_mode
 
-- name: Install JWK private key
+- name: Write JWK provisioner password
   ansible.builtin.copy:
-    content: "{{ vault_step_ca_jwk_priv | b64decode }}"
-    dest: /root/.step/secrets/jwk_priv.json
-    mode: "0600"
+    content: "{{ vault_step_ca_jwk_password }}"
+    dest: /root/.step/secrets/jwk_password.txt"
+    mode: '0600'
+  no_log: true
   when:
-    - not ansible_check_mode
-    - vault_step_ca_jwk_priv is defined and vault_step_ca_jwk_priv | length > 0
+    - vault_step_ca_jwk_password is defined and vault_step_ca_jwk_password | length > 0

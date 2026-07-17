@@ -1,10 +1,16 @@
 ---
 - ansible.builtin.include_tasks: cname.yml
-- ansible.builtin.include_tasks: deploy.yml
-- ansible.builtin.include_tasks: init.yml
+- ansible.builtin.include_tasks: binary_install.yml
+- ansible.builtin.include_tasks: user_setup.yml
+- ansible.builtin.include_tasks: ca_init.yml
+- ansible.builtin.include_tasks: config_deploy.yml
+- ansible.builtin.include_tasks: service_setup.yml
+- ansible.builtin.include_tasks: trust_store.yml
+- ansible.builtin.meta: flush_handlers
+- ansible.builtin.include_tasks: smoke_test.yml
 
 - name: Deploy CA install page
-  community.openwrt.copy:
-    src: ca-install.html
+  community.openwrt.template:
+    src: ca-install.html.j2
     dest: /www/ca.html
     mode: "0644"

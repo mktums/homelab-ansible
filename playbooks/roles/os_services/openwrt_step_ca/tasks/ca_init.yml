@@ -1,0 +1,177 @@
+---
+- name: Remove existing ca.json on force reinit
+  community.openwrt.file:
+    path: "{{ step_ca_path }}/config/ca.json"
+    state: absent
+  when: step_ca_force_reinit | default(false) | bool
+
+- name: Check if step-ca is already initialized
+  community.openwrt.stat:
+    path: "{{ step_ca_path }}/config/ca.json"
+  register: _step_ca_config
+
+- name: Check if vault has existing CA keys
+  ansible.builtin.set_fact:
+    _step_ca_has_vault_keys: >-
+      {{ (vault_step_ca_root_cert | default('') | length > 0) and
+         (vault_step_ca_root_key | default('') | length > 0) and
+         (not step_ca_force_reinit) }}
+
+- name: Write JWK password file for step ca init
+  community.openwrt.copy:
+    content: "{{ step_ca_jwk_password }}"
+    dest: "{{ step_ca_path }}/secrets/jwk_password.txt"
+    mode: '0600'
+  no_log: true
+  when: not _step_ca_config.stat.exists
+
+- name: Restore existing CA from vault
+  block:
+    - name: Create step-ca directories
+      community.openwrt.file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ step_ca_path }}/config"
+        - "{{ step_ca_path }}/certs"
+        - "{{ step_ca_path }}/secrets"
+        - "{{ step_ca_path }}/db"
+
+    - name: Write root password file
+      community.openwrt.copy:
+        content: "{{ step_ca_root_password }}"
+        dest: "{{ step_ca_path }}/secrets/root_password.txt"
+        mode: '0600'
+      no_log: true
+
+    - name: Write root cert from vault
+      community.openwrt.copy:
+        content: "{{ vault_step_ca_root_cert | b64decode }}"
+        dest: /tmp/vault_root.crt
+        mode: '0600'
+
+    - name: Write root key from vault
+      community.openwrt.copy:
+        content: "{{ vault_step_ca_root_key | b64decode }}"
+        dest: /tmp/vault_root.key
+        mode: '0600'
+
+    - name: Initialize step-ca with existing root cert
+      community.openwrt.command:
+        cmd: >-
+          STEPPATH="{{ step_ca_path }}"
+          step ca init --pki
+          --name="{{ step_ca_name }}"
+          --deployment-type=standalone
+          --root=/tmp/vault_root.crt
+          --key=/tmp/vault_root.key
+          --key-password-file="{{ step_ca_path }}/secrets/root_password.txt"
+          --password-file="{{ step_ca_path }}/secrets/root_password.txt"
+          --provisioner-password-file="{{ step_ca_path }}/secrets/jwk_password.txt"
+      changed_when: true
+
+    - name: Clean up temp files
+      community.openwrt.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/vault_root.crt
+        - /tmp/vault_root.key
+        - "{{ step_ca_path }}/secrets/root_password.txt"
+  when: _step_ca_has_vault_keys and not _step_ca_config.stat.exists
+
+- name: Generate new CA
+  block:
+    - name: Create step-ca directories
+      community.openwrt.file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ step_ca_path }}/config"
+        - "{{ step_ca_path }}/certs"
+        - "{{ step_ca_path }}/secrets"
+        - "{{ step_ca_path }}/db"
+
+    - name: Write root password file
+      community.openwrt.copy:
+        content: "{{ step_ca_root_password }}"
+        dest: "{{ step_ca_path }}/secrets/root_password.txt"
+        mode: '0600'
+      no_log: true
+
+    - name: Initialize step-ca (generate new)
+      community.openwrt.command:
+        cmd: >-
+          STEPPATH="{{ step_ca_path }}"
+          step ca init --pki
+          --name="{{ step_ca_name }}"
+          --deployment-type=standalone
+          --password-file="{{ step_ca_path }}/secrets/root_password.txt"
+          --provisioner-password-file="{{ step_ca_path }}/secrets/jwk_password.txt"
+      changed_when: true
+
+    - name: Read generated root cert
+      community.openwrt.slurp:
+        src: "{{ step_ca_path }}/certs/root_ca.crt"
+      register: _step_ca_root_cert
+
+    - name: Read generated root key
+      community.openwrt.slurp:
+        src: "{{ step_ca_path }}/secrets/root_ca_key"
+      register: _step_ca_root_key
+
+    - name: Save CA keys to controller
+      ansible.builtin.copy:
+        content: "{{ item.value }}"
+        dest: "{{ item.dest }}"
+        mode: '0600'
+      delegate_to: localhost
+      run_once: true
+      loop:
+        - { value: "{{ _step_ca_root_cert.content | b64decode }}", dest: "../vault/step-ca-root-ca.crt" }
+        - { value: "{{ _step_ca_root_key.content | b64decode }}", dest: "../vault/step-ca-root-ca.key" }
+
+    - name: Display CA key save instructions
+      ansible.builtin.debug:
+        msg: |
+          === NEW CA GENERATED — KEYS SAVED TO CONTROLLER ===
+          Files saved in vault/ directory:
+            vault/step-ca-root-ca.crt
+            vault/step-ca-root-ca.key
+          Add to vault/secrets.yml (base64-encoded). Then re-run playbook.
+      no_log: true
+
+    - name: Clean up root password file
+      community.openwrt.file:
+        path: "{{ step_ca_path }}/secrets/root_password.txt"
+        state: absent
+  when: not _step_ca_has_vault_keys and not _step_ca_config.stat.exists
+
+- name: Slurp ca.json for JWK provisioner data
+  community.openwrt.slurp:
+    src: "{{ step_ca_path }}/config/ca.json"
+  register: _ca_json_slurp
+
+- name: Parse JWK provisioner from ca.json
+  ansible.builtin.set_fact:
+    _jwk_provisioner: "{{ (_ca_json_slurp.content | b64decode | from_json).authority.provisioners | selectattr('type', 'equalto', 'JWK') | first }}"
+
+- name: Check if ca.json has encryptedKey (v2 migration check)
+  ansible.builtin.assert:
+    that:
+      - "_jwk_provisioner.encryptedKey is defined and _jwk_provisioner.encryptedKey | length > 0"
+    fail_msg: |
+      ca.json lacks 'encryptedKey' — this CA was initialized by v1 without --provisioner-password-file.
+      Re-initialize with: step_ca_force_reinit: true in host/group vars.
+      Note: this regenerates the JWK provisioner. Server roles using online mode will need new tokens.
+  when: _step_ca_config.stat.exists
+
+- name: Set JWK encrypted key fact
+  ansible.builtin.set_fact:
+    jwk_encrypted_key: "{{ _jwk_provisioner.encryptedKey }}"
+
+- name: Set JWK public key fact
+  ansible.builtin.set_fact:
+    jwk_public_key: "{{ _jwk_provisioner.key }}"

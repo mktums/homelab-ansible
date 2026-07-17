@@ -165,30 +165,6 @@ Web-based server management UI. System overview, services, containers, logs, ter
 - **Effort**: `easy` — `apt install cockpit`, systemd service
 - **Notes**: Complements DockHand (which manages Docker) by providing OS-level management. Cockpit's Docker plugin overlaps with DockHand; prefer Cockpit for OS tasks, DockHand for container orchestration.
 
-### ConvertX
-
-Self-hosted file conversion service. Convert documents, images, audio, and video formats.
-
-<https://github.com/C4illin/ConvertX>
-
-- **Layer**: 5 (tools) — utility
-- **Priority**: `low`
-- **Dependencies**: traefik
-- **Effort**: `easy` — single container, no DB
-- **Notes**: Replaces online conversion tools. Useful alongside Paperless-ngx for document format prep.
-
-### OmniTools
-
-Collection of online utilities: QR codes, calculators, converters, text tools, and more.
-
-<https://github.com/iib0011/omni-tools>
-
-- **Layer**: 6 (home) — user-facing
-- **Priority**: `low`
-- **Dependencies**: traefik
-- **Effort**: `easy` — single container, no DB
-- **Notes**: Replaces it-tools for some utilities. Complements ConvertX for format conversion.
-
 ### Koillection
 
 Collection tracking and cataloging. Manage books, games, movies, vinyl, and custom collections.
@@ -256,6 +232,20 @@ Two candidates under evaluation:
 - **Dependencies**: traefik (for web UI)
 - **Effort**: `medium` — cluster-aware, needs 3+ nodes for erasure coding (or single-node degraded mode)
 - **Notes**: Designed for multi-node clusters with erasure coding. Rust-based. Better fit if we plan horizontal scaling; overkill for single-node.
+
+---
+
+### Deck Lotus
+
+Self-hosted Magic: The Gathering deck builder with Mana Pool integration, price monitoring, cart optimization, and multi-user support.
+
+<https://github.com/madeofpendletonwool/deck-lotus>
+
+- **Layer**: 6 (home) — user-facing
+- **Priority**: `low`
+- **Dependencies**: traefik
+- **Effort**: `easy` — single container, SQLite storage
+- **Notes**: Deck building, price watches with ntfy push notifications, Mana Pool cart optimizer, deck sharing, multi-user with JWT auth.
 
 ---
 

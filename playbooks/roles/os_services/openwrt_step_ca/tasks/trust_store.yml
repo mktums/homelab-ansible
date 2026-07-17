@@ -1,0 +1,42 @@
+---
+- name: Download root CA certificate
+  community.openwrt.command:
+    cmd: curl -s --insecure https://127.0.0.1:{{ step_ca_port }}/roots.pem
+  register: _roots_pem
+  changed_when: false
+
+- name: Create CA certificates directory
+  community.openwrt.file:
+    path: /usr/local/share/ca-certificates
+    state: directory
+    mode: '0755'
+
+- name: Install root CA certificate
+  community.openwrt.copy:
+    content: "{{ _roots_pem.stdout }}"
+    dest: /usr/local/share/ca-certificates/step-ca-local-root.crt
+    mode: '0644'
+  register: _new_root_cert
+
+- name: Remove existing certificate file
+  community.openwrt.file:
+    path: /etc/ssl/certs/step-ca-local-root.crt
+    state: absent
+
+- name: Symlink certificate to /etc/ssl/certs
+  community.openwrt.file:
+    src: /usr/local/share/ca-certificates/step-ca-local-root.crt
+    path: /etc/ssl/certs/step-ca-local-root.crt
+    state: link
+
+- name: Generate certificate hash
+  community.openwrt.command:
+    cmd: openssl x509 -hash -noout -in /usr/local/share/ca-certificates/step-ca-local-root.crt
+  register: _cert_hash
+  changed_when: false
+
+- name: Create hash symlink
+  community.openwrt.file:
+    src: /usr/local/share/ca-certificates/step-ca-local-root.crt
+    path: "/etc/ssl/certs/{{ _cert_hash.stdout }}.0"
+    state: link

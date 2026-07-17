@@ -28,7 +28,7 @@ code{background:#161b22;padding:0.1em 0.4em;border-radius:3px;font-size:0.9em;di
 <p class="lead">All HTTPS services in this network use certificates issued by our local CA. Install the root certificate to trust them in your browser and OS.</p>
 
 <div class="download">
-<a href="https://step-ca.lan:8443/roots.pem" download="root-ca.crt">Download Root CA Certificate</a>
+<a href="https://{{ step_ca_cname }}.{{ lan_domain }}:{{ step_ca_port }}/roots.pem" download="root-ca.crt">Download Root CA Certificate</a>
 <p style="margin-top:1rem;font-size:0.85rem;color:#8b949e">File: <code>root-ca.crt</code> (PEM format)</p>
 </div>
 
@@ -61,7 +61,7 @@ sudo update-ca-certificates</code></pre>
 <h2>Android</h2>
 <div class="steps">
 <div class="step">Transfer <kbd>root-ca.crt</kbd> to your device</div>
-<div class="step">Go to <kbd>Settings</kbd> → <kbd>Security</kbd> → <kbd>Encryption & credentials</kbd></div>
+<div class="step">Go to <kbd>Settings</kbd> → <kbd>Security</kbd> → <kbd>Encryption &amp; credentials</kbd></div>
 <div class="step">Tap <kbd>Install a certificate</kbd> → <kbd>CA certificate</kbd></div>
 <div class="step">Select the file and confirm</div>
 </div>

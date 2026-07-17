@@ -1,7 +1,7 @@
 #!/bin/bash
 # JWK certificate auto-renewal script
 # Deployed by common_tasks/register_jwk_renewal
-# Args: $1=domain $2=cert_path $3=key_path $4=service_name
+# Args: $1=domain $2=cert_path $3=key_path $4=service_name $5=ca_url $6=issuer
 
 set -euo pipefail
 
@@ -11,7 +11,7 @@ KEY="${3:?key_path required}"
 SERVICE="${4:?service_name required}"
 CA_URL="${5:?ca_url required}"
 ISSUER="${6:?issuer required}"
-JWK_KEY="/root/.step/secrets/jwk_priv.json"
+JWK_PASSWORD="/root/.step/secrets/jwk_password.txt"
 RENEW_DAYS=30
 
 # Check if cert exists
@@ -39,12 +39,10 @@ logger -t jwk-renew "Renewing $DOMAIN (${DAYS_LEFT} days left)"
 # Resolve IP for SAN
 HOST_IP=$(hostname -I | awk '{print $1}')
 
-# Generate token (offline, local signing)
+# Generate token (online, password-based)
 TOKEN=$(step-cli ca token "$DOMAIN" \
-    --offline \
-    --issuer "$ISSUER" \
-    --key "$JWK_KEY" \
-    --ca-url "$CA_URL" \
+    --provisioner "$ISSUER" \
+    --password-file "$JWK_PASSWORD" \
     --san "$DOMAIN" \
     --san "$HOST_IP" \
     --san "127.0.0.1")

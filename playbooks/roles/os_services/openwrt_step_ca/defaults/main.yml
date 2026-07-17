@@ -6,9 +6,15 @@ step_ca_checksum: "d47988711e4aba07d882e6b90248372354925b90cf10ec3afbd479e441a00
 step_cli_version: "0.30.6"
 step_cli_checksum: "24e0980e0478466f8d53e5fd0a7919e65c180351814da26995df4439e1504103"
 
+# Binaries to install (name, repo, version/checksum vars, extract path)
+_step_binaries:
+  - { name: "step-ca", repo: "certificates", version_var: "step_ca_version", checksum_var: "step_ca_checksum", extract: "step-ca" }
+  - { name: "step", repo: "cli", version_var: "step_cli_version", checksum_var: "step_cli_checksum", extract: "bin/step" }
+
 # Paths
-step_path: "/etc/step-ca"
+step_ca_path: "/etc/step-ca"
 step_ca_binary: "/usr/bin/step-ca"
+step_cli_binary: "/usr/bin/step"
 
 # Network
 step_ca_port: 8443
@@ -19,16 +25,21 @@ step_ca_name: "Homelab CA"
 # CNAME subdomain (without .{{ lan_domain }})
 step_ca_cname: "step-ca"
 
-# Password (from vault)
-step_ca_password: "{{ vault_step_ca_password }}"
+# Passwords (from vault)
+step_ca_root_password: "{{ vault_step_ca_password }}"
+step_ca_intermediate_password: "{{ vault_step_ca_intermediate_password | default(vault_step_ca_password) }}"
+step_ca_jwk_password: "{{ vault_step_ca_jwk_password }}"
 
 # ACME certificate TTL
 step_ca_acme_default_ttl: "24h"
-step_ca_acme_max_ttl: "8760h"  # 1 year
+step_ca_acme_max_ttl: "8760h"
 
 # JWK certificate TTL
 step_ca_jwk_default_ttl: "24h"
-step_ca_jwk_max_ttl: "8760h"  # 1 year
+step_ca_jwk_max_ttl: "8760h"
 
 # Wildcard certificate policy (empty list = no wildcard policy)
 step_ca_policy_wildcards: []
+
+# Force fresh generation (ignores vault keys)
+step_ca_force_reinit: false
